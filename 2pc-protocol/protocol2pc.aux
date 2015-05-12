@@ -1,0 +1,71 @@
+\relax 
+\citation{two-output}
+\citation{fast2pc}
+\citation{billiongate}
+\citation{yaoprotocols}
+\citation{LP07}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Notation}{1}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}An Honest-But-Curious Protocol}{1}}
+\newlabel{sec:HBC}{{2}{1}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Attacks}{1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Malicious Eval}{1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Malicious Gen}{1}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Generator's Input Consistency}{1}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Selective Failure}{2}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Security in the Malicious Setting}{2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Cut and Choose}{2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Defenses Against Malicious Eval}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Gen's Output Privacy}{2}}
+\newlabel{sec:gen-out-priv-defense}{{4.2.1}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Gen's Output Authenticity}{2}}
+\newlabel{sec:gen-output-auth}{{4.2.2}{2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Defense Against Malicious Gen}{2}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Gen's Input Consistency}{2}}
+\newlabel{sec:gen-inp-consist-defense}{{4.3.1}{2}}
+\@writefile{tdo}{\contentsline {todo}{Come back to the previous line. Gen is not necessarily using the same input keys all over the place.}{2}}
+\pgfsyspdfmark {pgfid1}{20112833}{13320479}
+\citation{fast2pc}
+\citation{LP07}
+\citation{LP07}
+\citation{LP07}
+\citation{fast2pc}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.2}Selective Failure}{3}}
+\newlabel{k-probe-matrix}{{4.3.2}{3}}
+\citation{HEKM}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Performance Considerations}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Pipelining Evaluation}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Gate Communication}{4}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}A Protocol Secure Against Malicious Adversaries}{4}}
+\newlabel{step:inputs}{{1}{4}}
+\newlabel{step:gen-inp-commit}{{3}{4}}
+\newlabel{step:gen-label-commit}{{5}{5}}
+\@writefile{tdo}{\contentsline {todo}{Does $Gen$ generate entire circuits here, or are these keys enough? I think it is implied that $Gen$ must actually generate the whole circuit in order to get the output keys.}{5}}
+\pgfsyspdfmark {pgfid2}{20932034}{42556711}
+\@writefile{tdo}{\contentsline {todo}{Do the $\theta $s in the above (which represent randomness for the commitment) need to be separate, or even independent?}{5}}
+\pgfsyspdfmark {pgfid3}{21652930}{35376038}
+\@writefile{tdo}{\contentsline {todo}{Does $\Phi $ not require randomness in its commitments? Why?}{5}}
+\pgfsyspdfmark {pgfid4}{21652930}{27340467}
+\newlabel{step:eval-inp-ot}{{6}{5}}
+\newlabel{step:cut-and-choose}{{7}{5}}
+\@writefile{tdo}{\contentsline {todo}{are Gen's inputs to the OT the same length? Do we need padding?}{5}}
+\pgfsyspdfmark {pgfid5}{20932034}{11583274}
+\newlabel{step:circuit-garbling}{{8}{5}}
+\bibstyle{IEEEtran}
+\bibdata{protocols}
+\@writefile{tdo}{\contentsline {todo}{come back to this equation.}{6}}
+\pgfsyspdfmark {pgfid6}{20932034}{45387387}
+\@writefile{tdo}{\contentsline {todo}{talk about using optimizations described above in communication (and talk about them!)}{6}}
+\pgfsyspdfmark {pgfid7}{20932034}{42651824}
+\newlabel{step:circuit-check}{{9}{6}}
+\newlabel{step:circuit-evaluate}{{10}{6}}
+\newlabel{step:majority}{{11}{6}}
+\newlabel{step:gen-out-auth}{{12}{6}}
+\bibcite{two-output}{1}
+\bibcite{fast2pc}{2}
+\bibcite{billiongate}{3}
+\bibcite{yaoprotocols}{4}
+\bibcite{LP07}{5}
+\bibcite{HEKM}{6}
+\@writefile{tdo}{\contentsline {todo}{There will be a version where Gen has to generate all the circuits twice (so as not to keep them in memory unnecessarily). Make this inclusion in the above list. Also, include the part about cutting down communication.}{7}}
+\pgfsyspdfmark {pgfid8}{20112833}{46210043}

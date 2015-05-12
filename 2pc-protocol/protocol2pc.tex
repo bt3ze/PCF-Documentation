@@ -1,0 +1,312 @@
+\documentclass{article}
+
+\usepackage{fancyhdr}
+\usepackage{extramarks}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usepackage[plain]{algorithm}
+%\usepackage{algorithmic}
+\usepackage{algpseudocode}
+\usepackage{todonotes}
+\usepackage{enumitem}
+%\usepackage{float}
+%\restylefloat{table}
+%\usepackage{floatrow}
+% Table float box with bottom caption, box width adjusted to content
+%\newfloatcommand{capbtabbox}{table}[][\FBwidth]
+
+\usetikzlibrary{automata,positioning}
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+%
+% Basic Document Settings
+%
+
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.05}
+
+
+\setlength\parindent{0pt}
+
+\newcommand{\hmwkAuthorName}{Ben Terner}
+
+
+\author{\textbf{\hmwkAuthorName}}
+\date{}
+
+%
+% Various Helper Commands
+%
+
+% Useful for algorithms
+\newcommand{\alg}[1]{\textsc{\bfseries \footnotesize #1}}
+
+% Probability commands: Expectation, Variance, Covariance, Bias
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Bias}{\mathrm{Bias}}
+
+\begin{document}
+\centerline{{\Large 2-Party Secure Computation: A Survey of BetterYao}}
+
+\centerline{{\large Ben Terner}}
+
+% Intro
+\section{Introduction}
+This survey will give an overview of the BetterYao implementation of secure computation against malicious adversaries, as described by ~\cite{two-output} and ~\cite{fast2pc} and implemented in ~\cite{billiongate}. This survey assumes familiarity with circuit garbling techniques, which are explained in another survey for reference.
+
+% Notation
+\subsection{Notation}
+We will discuss the protocol for securely evaluation a function $f(x,y) = (f_{1}(x,y),f_{2}(x,y))$ by two players $P_{1}$ and $P_{2}$, where $P_{1}$'s input is $x$, $P_{1}$'s output is $f_{1}$, $P{_2}$'s input is $y$, and $P_{2}$'s output is $f_{2}$. In our protocols, one of the players will take the role of {\it generator} and one will take the role of {\it evaluator}, or $Gen$ and $Eval$, respectively. Without loss of generality, we can assume that $P_{1}$ will be $Gen$ and $P_{2}$ will be $Eval$. \\
+
+For each wire $w_{i}$ in the circuit, $Gen$ randomly picks two keys, $K_{i,0}$, $K_{i,1}$, and a permutation bit $\pi_{i}$. Each key is the length of the security parameter $k$. The {\it label} for each wire $w_{i}$ consists of the pair $(K_{i,b}, b \oplus \pi_{i})$ and is denoted $W_{i,b}$.
+
+% HBC
+\section{An Honest-But-Curious Protocol}\label{sec:HBC}
+We first describe a protocol for secure two-party computation by Yao that is secure in the honest-but-curious setting, and then explain potential attacks by malicious players and the mechanisms by which we enforce proper behavior or dampen the capabilities of attacks. \\
+
+$Gen$ will construct a circuit, gate by gate, according to Yao's protocol ~\cite{yaoprotocols} and send each gate to $Eval$, as well as proper input keys for each of $Gen$'s inputs. $Eval$ and $Gen$ will use OTs in order for $Eval$ to retrieve the proper keys for her own inputs. $Gen$ also sends the random permutation bit $\pi$ for each of the circuit output wires so that $Eval$ can identify their semantic values.  \\
+
+So that $Eval$ cannot trivially read the values of $Gen$'s output wires, $Gen$ constructs the circuit to produce his output masked with one-time pad $c$. $Gen$ keeps the value of $c$ private and uses it to decrypt his output after receiving it from $Eval$, although keys for $c$ must be also provided to $Eval$.
+
+% Attacks
+\section{Attacks}
+
+% Malicious Eval
+\subsection{Malicious Eval}
+The two-party protocol we describe is not {\it fair} in the sense that if $Eval$ does not want to, she does not have to send $Gen$ his outputs, but in this case $Gen$ knows that $Eval$ has cheated. $Eval$ can behave maliciously against $Gen$ in two other ways during this protocol: she can attempt to learn $Gen$'s outputs or she can report false outputs to $Gen$. We will refer to these as attacks against $Gen$'s {\it output privacy} and $Gen$'s {\it output authenticity}.\\
+
+%Malicious Gen
+\subsection{Malicious Gen}
+
+% Gen Input Consistency
+\subsubsection{Generator's Input Consistency} 
+
+Because we achieve security in the malicious protocol using Cut and Choose, $Gen$ and $Eval$ execute the Yao protocol on many circuits. $Gen$ could attack $Eval$ by providing inconsistent inputs to $Eval$ in the evaluation circuits. Lindell and Pinkas ~\cite{LP07} showed that for some functions, this could leak some information about $Eval$'s inputs.
+
+% Selective Failure
+\subsubsection{Selective Failure}
+
+$Gen$ could infer information about $Eval$'s inputs by providing a incorrect keys to $Eval$ during OT that will force circuit decryption to fail. For example, a malicious $Gen$ could assign keys $(K_0,K_1)$ to one of $Eval$'s input wires when garbling a circuit but use $(K_0,K_{1}^{*})$ in the OT, where $K_{1} \neq K_{1}^{*}$. If $Eval$'s input is $1$, decryption of the first gate will fail and $Eval$ will have to abort, indicating to $Gen$ that her input was 1. If $Eval$'s input is 0, then $Gen$ discovers her input by the knowledge that decryption of the circuit did not fail.
+
+% Malicious Security
+\section{Security in the Malicious Setting}
+
+% Cut and Choose
+\subsection{Cut and Choose}
+Before explaining defenses to specific concerns about $Gen$ and $Eval$ acting maliciously, we first discuss the {\it Cut and Choose} technique for circuit evaluation in the malicious setting. Intuitively, $Gen$ will construct many circuits (the number determined by some security parameter) and send them to Eval, or at least commit to them. $Gen$ and $Eval$ will collaboratively choose some of the circuits at random to become ``check circuits,'' with the rest being ``evaluation circuits.'' $Gen$ will reveal the private randomness used to construct the ``check circuits,'' and $Eval$ will verify their authenticity. $Eval$ will evaluate the ``evaluation circuits'' as in the Yao protocol and select the output of the majority circuit as the protocol's output.
+
+% Defenses Against Eval
+\subsection{Defenses Against Malicious Eval}
+
+% Gen Output Privacy
+\subsubsection{Gen's Output Privacy} \label{sec:gen-out-priv-defense}
+
+As explained in Section \ref{sec:HBC}, $Gen$'s input privacy can be protected using a one-time pad circuit composed entirely of XOR gates. This does not change for the malicious setting.
+
+%Gen Output Authenticity
+\subsubsection{Gen's Output Authenticity} \label{sec:gen-output-auth}
+
+% Defenses Against Malicious Gen
+\subsection{Defense Against Malicious Gen}
+
+% Gen's Input Consistency
+\subsubsection{Gen's Input Consistency} \label{sec:gen-inp-consist-defense}
+
+The intuition to defend against this attack is to supplement our objective circuit with a 2-universal hash circuit that will compute some function over $Gen$'s inputs which $Eval$ can verify  for each circuit evaluation. Critical to the hash circuit are the properties of hiding and collision-freeness. Simply, to preserve the privacy property of the protocol, the output of the hash circuit should reveal no information to $Eval$ about $Gen$'s inputs. Collision-freeness effectively binds $Gen$ to his inputs; because two inputs are hard for $Gen$ to find that will evaluate to the same hash, $Gen$ must use the same input keys for each garbled circuit that uses the same hash circuit. \todo[inline]{Come back to the previous line. Gen is not necessarily using the same input keys all over the place.} Two-Universal hash circuits satisfy the binding property by definition, since they fulfill the requirement that for fixed, distinct inputs $x$ and $y$, the probability that a random hash function $h : A \rightarrow B $ satisfies $h(x) = h(y)$ is at most $1/|B|$. \\
+
+It follows that if $x_{i}$ is $Gen$'s input to evaluation circuit $i$, then the consistency of the hashes $h(x_1),h(x_2),...,h(x_n)$ will imply the consistency of each $x_i$ with probability at least $1-1/|B|$. Because the difficulty of finding collisions for 2-Universal hash functions is defined with \emph{a posteriori} knowledge of the inputs $x$ and $y$, the hash function must be chosen during the protocol \emph{after} $Gen$ commits to his inputs. Here, $Gen$ commits to his input keys rather than his actual inputs in order to preserve privacy during the reveal phase. \\
+
+It is not sufficient to simply incorporate a 2-Universal hash circuit into the protocol, since for circuits where $Gen$ has few inputs, $Eval$ can simply run all possible inputs by $Gen$ through the hash circuit to find a matching hash and learn $Gen$'s inputs. In addition, the 2-Universal hash circuit must also be randomized. ~\cite{fast2pc} use the Leftover Hash Lemma to show that $Gen$ must pick $2k + lg(k)$ bits of fresh randomness at the beginning of the protocol as input to this hash function in order to achieve security according to parameter $k$, and that the output of the 2-Universal hash function will appear pseudorandom even if the hash function is made public. \\
+
+The hash function is chosen from the family $$\mathcal{M} = \{ h_{M} | M \in \{0,1\}^{m \times n} \wedge h_{M}(x) = M \cdot x \text{ for some } m,n \in \mathbb{N} \}$$
+which has the advantage that the hash circuit can be computed with only XOR-gates, making the computation overhead to the protocol minimal when using free-XOR.
+
+% Selective Failure
+\subsubsection{Selective Failure}
+
+At a high level, he defense for this attack, first given by ~\cite{LP07}, is to provide a transformation that converts $Eval$'s true input $y$ into the her protocol input $\overline{y}$, and have an auxiliary circuit convert $\overline{y}$ back into $y$ during circuit evaluation. $Eval$ does this by choosing some $M \in \{0,1\}^{n \times m} \text{ for some } m \in \mathbb{N}$ and computes $M \cdot \overline{y} = y$. This technique requires that the $Gen$ be unable to infer any information about $y$ from knowledge he may gain about $\overline{y}$.  We require the following definition:\\
+
+$M \in \{0,1\}^{n \times m}$ for some $n,m \in \mathbb{N}$  is called \emph{k-probe-resistent} for some $k \in \mathbb{N}$ if for any $L \subset \{1,2,...,n\}$, the Hamming distance of $\oplus_{i \in L} M_{i} $ is at least $k$, where $M_{i}$ denotes the \emph{i-th} row of $M$.\\
+
+If $M$ is k-probe-resistent for some parameter $k$, then $Gen$ will have negligible probability of inferring information about $Eval$'s input $y$ from the protocol input $\overline{y}$, even if $M$ is made public and computed exclusively with XOR gates. \\
+
+Lindell and Pinkas ~\cite{LP07} point out that as long as $m$ is big enough, the $M$ will not be k-probe-resistant with negligible probability. Although ~\cite{LP07} choose $m$ to be $max(4n,8k)$, ~\cite{fast2pc} give a probabilistic algorithm that produces k-probe-resistant matrix $M$ such that $m \leq lg(n) + n + k + max(lg(4n),lg(4k))$. The algorithm follows:
+
+\begin{algorithm}
+%\caption{K-Probe-Resistant Matrix}
+\label{k-probe-matrix}
+\begin{algorithmic}
+\State \textbf{Input:} Eval's input size $n$ and security parameter $1^{k}$
+\State \textbf{Output:} k-probe-resistent matrix $M \in \{0,1\}^{n \times m} \text{ for some } m \in \mathbb{N}$
+\State $t \leftarrow \ceil{max(lg(4n),lg(4k))}$ // find the minimum $t$ such that $2^{t} \geq k + (lg(n) + n + k)/t$
+\While{$2^{t-1} > k + (lg(n) + n + k)/(t-1)$}
+	\State $t \leftarrow t - 1$
+\EndWhile
+\State $K \leftarrow \ceil{(lg(n) + n + k)/t}$
+\State $N \leftarrow K + k - 1$
+\For{$i \leftarrow 1 \text{\textbf{ to }} n$ }
+	\State Pick $P(x) = a_{0} + a_{1}x + a_{2}x^{2} + ... + a_{K-1}x^{K-1}$, where $a_{i} \xleftarrow{\$} \mathbb{F}_{2^{t}}$
+	\State $M_{i} \leftarrow [P(1)_{2} || P(2)_{2} || ... || P(N)_{2}]$ // where $P(j)_{2}$ denotes a \emph{t}-bit row vector
+\EndFor \\ 
+\Return $M$ // $M \in \{0,1\}^{n \times m}$, where $m=Nt$
+\end{algorithmic}
+\end{algorithm}
+
+The algorithm constructs a k-probe-resistant matrix $M$ by randomly picking polynomials $P_1,P_2,...,P_n \in \mathbb{F}_{2^{t}}[x]$ with degree at most K-1,where $n$ is the evaluator's input size. The polynomials are evaluated at points $x_1,x_2,...x_N \in \mathbb{F}_{2^{t}}$,  and the outputs for each $P_i$ over the points are concatenated as a $N \cdot t$-bit vector which becomes the \emph{i}-th row of $M$.
+
+% 
+%\begin{algorithm}
+%\caption{GaleShapley(S,R,P):}
+%\label{gale-shapley-original}
+%\begin{algorithmic}
+%    \STATE $S' = S$
+ %   \WHILE{$\exists s \in S'$}
+ %       \STATE $s \leftarrow S'$
+ %       \STATE $r \leftarrow p_s | p_s(r) \geq ps(r')~ \forall r'\in R$  such that $s$ has not already chosen $r,r'$
+%        \IF{$(\cdot,r) = \emptyset$}
+%            \STATE $M' = M' \cup \lbrace(s,r)\rbrace$
+%            \STATE $S' = S' \backslash \lbrace s\rbrace$
+%        \ELSE
+%            \STATE $s' \leftarrow (\cdot,r)$
+%            \IF{$p_r(s) > p_r(s')$ - that is, $r$ prefers $s$ to $s'$}
+%                \STATE $M' = M' \backslash \lbrace (s',r)\rbrace$
+%                \STATE $S' = S' \cup \lbrace s' \rbrace$
+%                \STATE $M' = M' \cup \lbrace (s,r) \rbrace$
+%                \STATE $S' = S' \backslash \lbrace s \rbrace$
+%            \ENDIF
+%        \ENDIF
+%    \ENDWHILE
+%    \RETURN $M'$
+%\end{algorithmic}
+%\end{algorithm}
+%
+
+\section{Performance Considerations}
+This section details a couple of engineering improvements to reduce the amount of computation and communication involved in the protocol.
+
+\subsection{Pipelining Evaluation}
+When circuits become millions or billions of gates large, it becomes infeasible to retain the entire circuit in memory, especially when multiple circuits must be evaluated to attain security in the malicious setting. HEKM ~\cite{HEKM} showed that holding entire circuits in memory is unnecessary, as $Gen$ and $Eval$ can execute the protocol while only retaining gates in memory that they need at the moment. To do this, $Gen$ and $Eval$ evaluate all of the circuits in lockstep and pipeline the garbling of gates with their evaluation. $Gen$ garbles $\sigma$ gates at once, all corresponding to the same gate in the evaluation circuit, and sends them to $Eval$ together. While $Gen$ is garbling, $Eval$ evaluates the last batch that $Gen$ sent. 
+
+\subsection{Gate Communication}
+
+\section{A Protocol Secure Against Malicious Adversaries}
+
+We now describe the full protocol for [fast] secure two-party computation in the malicious setting.\\
+
+\textbf{Private Inputs: }
+$Gen$'s private inputs to the protocol are $x_{i} \in x$ and $Eval$'s private inputs to the protocol are $y_{i} \in y$.\\
+\textbf{Shared Inputs: }
+$Gen$ and $Eval$ agree upon a function $f : (x,y) \rightarrow (f_{1},f_{2})$.  $Gen$ and $Eval$ also agree on a security parameter $1^{k}$ and a statistical parameter $1^{\sigma}$. They use a commitment scheme $com$ and a symmetric encryption scheme $(enc,dec)$. \\
+\textbf{Notation: }
+$Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length $m_1$ and $Eval$'s inputs $\overline{y}$ (described in step \ref{step:inputs}) have length $m_2$.  Consider any input key $K_{b,i}^{(j)} \in \{0,1\}^{k}$. $K$ has length $k$ and semantic value $b \in \{0,1\}$, it is a key for the \emph{i}th wire in its circuit, and it belongs to circuit $j$. Let $W_{i,b}^{(j)}$ be the \emph{label} corresponding to the \emph{i}th wire $w$ in circuit \emph{j} such that $W_{i,b}^{(j)}$ has semantic value $b$. $W_{i}^{(j)}$ has unknown semantic value.
+
+\begin{enumerate}
+	% Input Modification
+	\item \label{step:inputs} \textbf{Input Modification}\\
+	$Gen$ generates randomness $r \in \{0,1\}^{2k+\lg(k)}$, which will be used as input to the 2-Universal circuit described in section \ref{sec:gen-inp-consist-defense}. $Gen$ also generates a one-time pad $e$ which will be used to mask his outputs, as described in section \ref{sec:gen-out-priv-defense}. $Eval$ computes her \emph{k}-probe-resistant matrix $M$ and input $\overline{y}$ such that $M \cdot \overline{y} = y$. $Gen$'s input is now $\overline{x} = x || e || r$ and $Eval$'s input is now $\overline{y}$.
+	
+	% Gen Randomly Generates Input Keys
+	\item \textbf{Gen Randomly Generates Input Keys}\\
+	$Gen$ generates randomness $\{\rho^{(j)}\}_{j \in \sigma}$, where $\rho^{(j)}$ corresponds to the randomness used for the \emph{j}th circuit. He uses each $\rho^{(j)}$ to generate input keys and permutation bits $(K_{0,i}^{(j)},K_{1,i}^{(j)},\pi_{i}^{(j)}) \in \{0,1\}^{2k+1} \text{ for } i \in \overline{x}$ for each circuit $j \in \sigma$.
+	
+	% Gen Input Commitments
+	\item \label{step:gen-inp-commit} \textbf{Gen Commits to His Input}\\
+	$Gen$ generates new randomness $\gamma_{i}^{(j)}$ (independent of $\rho^{(j)}$) for $i \in \overline{x} \text{ and  }j \in \sigma$ and commits to all of the keys that correspond to his circuit inputs. He sends $\Gamma = \{com(W_{i,b}^{(j)};\gamma_{i}^{(j)})\}_{i \in \overline{x}}$ to $Eval$.
+	
+	% Agree on Objective Circuit
+	\item \textbf{Agree on the Objective Circuit}\\
+	$Eval$ announces $M$ to $Gen$ and then $Gen$ and $Eval$ run an interactive coin-flipping protocol to generate the two-universal circuit $H \in \{0,1\}^{k \times m_1}$. They now both know the full objective circuit \emph{C} to compute $g : (\overline{x},\overline{y}) \rightarrow (\bot, (h,c,g_2))$ where $H = h \cdot \overline{x}$, $c=g_{1}\oplus e$, $g_{1} = f_{1}(x, M\cdot\overline{y})$, and $g_{2} = f_{2}(x,M\cdot\overline{y})$.
+	
+	% Gen Commits to I/O Labels
+	\item \label{step:gen-label-commit} \textbf{Gen Commits to Input and Output Labels}\\
+	$Gen$ uses $\rho^{(j)}$ to generate input keys for $Eval$'s inputs and output keys for his own outputs. \todo[inline]{Does $Gen$ generate entire circuits here, or are these keys enough? I think it is implied that $Gen$ must actually generate the whole circuit in order to get the output keys.}  He then sends $(\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)})_{j \in \sigma}$ to $Eval$, where $\Theta$ represents $Gen$'s input labels, $\Omega$ represents $Eval$'s input labels, and $\Phi$ represents $Gen$'s output labels (specifically, the values of $c$):
+	\begin{enumerate}[label=(\alph*)]
+		\item $\Theta^{(j)}  = \{com(W_{i,0\oplus\pi_{i}^{(j)}}^{(j)};\theta_{i}^{(j)}),com(W_{i,1\oplus\pi_{i}^{(j)}}^{(j)};\theta_{i}^{(j)})\}_{i \in m_{1}}$ where $\theta$ is randomness used in the commitment.\\
+		\todo[inline]{Do the $\theta$s in the above (which represent randomness for the commitment) need to be separate, or even independent?}
+		To protect $Gen$'s input privacy, the labels for each wire's 0 input and 1 input are permuted by (re)using the permutation bit $\pi$.
+		\item $\Omega = \{com(W_{i,0}^{(j)};\omega_{i}^{(j)}),com(W_{i,1}^{(j)};\omega_{i}^{(j)})\}_{i \in m_{2}}$ where $\omega$ is randomness used in the commitment.\\
+		Unlike $Gen$'s inputs labels, $Gen$ does not permute $Eval$'s input labels. She will need to know their ordering, and her inputs will be protected by OT in step \ref{step:eval-inp-ot}.
+		\item $\Phi =  \{com(W_{i,0}),com(W_{i,1})\}_{i \in c}$\\
+		\todo[inline]{Does $\Phi$ not require randomness in its commitments? Why?}
+		$Eval$ will discover the semantics of these wires anyway (in step ??), so there is no need to permute them.
+	\end{enumerate}
+	
+	% Eval's Input OTs
+	\item \label{step:eval-inp-ot} \textbf{Eval's Input OTs}\\
+	For every $i \in \overline{y}$, $Gen$ and $Eval$ perform ${2 \choose 1}$ OTs for $Eval$'s input, where $Gen$'s input is $(\{W_{i,0}^{(j)},W_{i,1}^{(j)}\}_{j \in \sigma})$ and $Eval$'s input is $\overline{y}_{i}$. For each semantic value of $\overline{y}_{i}$, $Gen$ sends the concatenation of the entire set of input keys over all $j$ circuits.\\
+	We denote the set of decommitments that $Eval$ receives for each circuit as $Y^{(j)} = \{ (W_{i,\overline{y}_{i}}^{(j)},\omega^{(j)}) \}$. 
+	
+	% Cut and Choose
+	\item \label{step:cut-and-choose} \textbf{Cut and Choose}\\
+	$Eval$ randomly chooses $S \subset [\sigma]$ such that $S = 2\sigma / 5$. Use the string $s \in \{0,1\}^{\sigma}$ to describe the circuits that $Eval$ has chosen for cut-and-choose by denoting $s_{j} = 1$ if $j \in S$ and $s_{j} = 0$ otherwise.  $Gen$ and $Eval$ perform cut-and-choose by doing $\sigma$ ${2 \choose 1}$ OTs, where $Eval$'s input is $s_{j}$ and $Gen$'s input is $(\rho^{(j)}, X^{(j)})$ such that $X^{(j)} = X_{1}^{(j)} \cup X_{2}^{(j)}$, where $X_{1}^{(j)} = \{(W_{i,\overline{x}_{i}}^{(j)},\gamma_{i}^{j})\}_{i \in \overline{x}}$ and $X_{2}^{(j)} = \{(W_{i,\overline{x}_{i}}^{(j)},\theta_{i}^{j})\}_{i \in \overline{x}}$. In other words, if $Eval$ chooses a circuit as a check circuit, she learns the input and generates it. If $Eval$ chooses a circuit as an evaluation circuit, she learns the de-commitments to $Gen$'s input keys (which will be checked) and can evaluate the circuit. \\
+	\todo[inline]{are Gen's inputs to the OT the same length? Do we need padding?}
+	Note: the OTs in \ref{step:cut-and-choose} can all be run in parallel, as can the OTs in step \ref{step:eval-inp-ot}, and they can be run in parallel with each other. 
+	
+	% Circuit Garbling
+	\item \label{step:circuit-garbling} \textbf{Circuit Garbling}\\
+	For every garbled gate $g: \{0,1\} \times \{0,1\} \rightarrow \{0,1\}$ with input wires $w_{a}, w_{b}$ and output wire $w_{c}$, $Gen$ computes the garbled truth table:
+	$$G(g)^{(j)} = ( <\pi_{a}^{(j)}, \pi_{b}^{(j)}>,<\pi_{a}^{(j)}, 1 \oplus \pi_{b}^{(j)}>, < 1 \oplus \pi_{a}^{(j)}, \pi_{b}^{(j)}>,<1 \oplus  \pi_{a}^{(j)}, 1 \oplus \pi_{b}^{(j)}>)$$
+	where $(<h_{\alpha},h_{\beta}>) = enc_{K_{a,h_{\alpha}}^{(j)}}(   enc_{K_{b,h_{\beta}}^{(j)}} ( W_{c,g(h_{\alpha},h_{\beta})}^{(j)} ))$.
+	\todo[inline]{come back to this equation.}
+	$Gen$ sends $\{ G(C)^{(j)} \}_{j \in \sigma}$ to $Eval$, where $G(C)^{(j)} = \big( \{G(g)^{(j)}\}_{g \in C}, \{ \pi_{i}^{(j)}: w_{i} \text{ is an output wire } \}  \big)$
+	\todo[inline]{talk about using optimizations described above in communication (and talk about them!)}
+	
+	% Checking Garbled Circuits
+	\item \label{step:circuit-check} \textbf{Checking Garbled Circuits}\\
+	$Eval$ must verify both check circuits and evaluation circuits.
+	\begin{enumerate}[label=(\alph*)]
+		\item \textbf{Check Circuits}\\
+		For every $j \in [\sigma] \backslash S$, $Eval$ uses $\rho^{(j)}$ to regenerate $\{\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)} \}$ received in step \ref{step:gen-label-commit} and reconstruct $G(C)^{(j)}$.
+		\item \textbf{Evaluation Circuits}\\
+		For every $j \in S$, $Eval$ checks:
+		\begin{enumerate}[label=\roman*]
+			\item if the \emph{i}th entry of $X_{1}^{(j)}$ received in step \ref{step:cut-and-choose} successfully decommits the \emph{i}th entry in $\Gamma^{(j)}$ received in step \ref{step:gen-inp-commit}.
+			\item if the \emph{i}th entry of $X_{2}^{(j)}$ received in step \ref{step:cut-and-choose} successfully decommits the $(2\cdot i + \overline{x}_{i} \oplus \pi_{i}^{(j)})$-th entry of $\Theta^{(j)}$ received in step \ref{step:gen-label-commit}.
+			\item if the decommitted labels from the above two checks are consistent with each other.
+			\item if the set of $Eval$ inputs $Y_{(j)}$ received in step \ref{step:eval-inp-ot} is consistent with half of the commitments in $\Omega^{(j)}$ received in step \ref{step:gen-label-commit}. Specifically, the \emph{i}th entry of $Y^{(j)}$ should decommit the $(2\cdot i + \overline{y}_{i})$th entry in $\Omega^{(j)}$.
+		\end{enumerate}
+	\end{enumerate}
+	If any failure occurs, $Eval$ aborts.
+	
+	% Evaluating Garbled Circuits
+	\item \label{step:circuit-evaluate} \textbf{Evaluating Garbled Circuits}\\
+	$Eval$ evaluates the circuit according to the Yao protocol. 
+	\begin{enumerate}[label=(\alph*)]
+		\item For every gate $g \in G(C)$ with input labels $W_{a}^{(j)} = (K_{a}^{(j)}, \delta_{a}^{(j)})$ and $W_{b}^{(j)} = (K_{b}^{(j)}, \delta_{b}^{(j)})$, $Eval$ finds the $(2 \cdot \delta_{a}^{(j)} + \delta_{b}^{(j)})$ index $E$ of $G(C)$ and computes $$W_{c}^{(j)} = (K_{c}^{(j)}, \delta_{c}^{(j)}) = dec_{K_{b}^{(j)}}(dec_{K_{a}^{(j)}}(E))$$
+		\item For every output wire $w_{i}$ with label $W_{i} = (K_{i},\delta_{i})$, $Eval$ computes the wire's value $b_{i}^{(j)} = \delta_{i}^{(j)} \oplus \pi_{i}^{(j)}$, where $Eval$ learned $\pi_{i}^{(j)}$ at the end of step \ref{step:circuit-garbling}. She lets the set of outputs $\{b_{i}^{(j)}\}$ be the circuit outputs.
+	\end{enumerate}
+	
+	% Findings the Majority Circuit
+	\item \label{step:majority} \textbf{Finding the Majority Output}\\
+	$Eval$ finds the most commonly occurring element for each index in $\{b_{i}\}$ among the evaluation circuits and interprets the set of outputs $\{ b_{i} \}$ as $(h,c,g_{2})$. She then checks:
+	\begin{enumerate}[label=(\alph*)]
+		\item if $h^{(j)} \neq h$ for any $j \in S$, or
+		\item if $(h,c,g_{2})$ is not the majority output of $\{ (h^{(j)},c^{(j)},g_{2}^{(j)}) \}$. More formally, $Eval$ checks if
+		$$ \big\{ (h^{(j)},c^{(j)}, g_{2}^{(j)}) : (h^{(j)}, c^{(j)}, g_{2}^{(j)}) =(h,c,g_{2}) \big\} \leq \frac{|S|}{2} = \frac{\sigma}{5}$$
+	\end{enumerate}
+	If any of the above checks are true, $Eval$ aborts. Otherwise, she accepts $g_{2}$ as her own output.
+	
+	% Proving Gen's Output Authenticity
+	\item \label{step:gen-out-auth} \textbf{Proving Gen's Output Authenticity}\\
+	$Eval$ sends $Gen$ his output $c$ and must prove his output authenticity without revealing the index of the chosen majority circuit, as described in section \ref{sec:gen-output-auth}.
+	
+\end{enumerate}
+
+\todo[inline]{There will be a version where Gen has to generate all the circuits twice (so as not to keep them in memory unnecessarily). Make this inclusion in the above list. Also, include the part about cutting down communication.}
+
+\bibliographystyle{IEEEtran}
+\bibliography{protocols}
+
+\end{document}

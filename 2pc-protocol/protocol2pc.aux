@@ -12,60 +12,75 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Malicious Eval}{1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Malicious Gen}{1}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Generator's Input Consistency}{1}}
+\citation{two-output}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Selective Failure}{2}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Security in the Malicious Setting}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Cut and Choose}{2}}
+\@writefile{tdo}{\contentsline {todo}{Eval performs random seed checking. Explain the checks that Eval performs and what she has to do in order to perform the checks. There's a piece missing somewhere about how to compute the hash of a circuit.}{2}}
+\pgfsyspdfmark {pgfid1}{20112833}{24877763}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Defenses Against Malicious Eval}{2}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Gen's Output Privacy}{2}}
 \newlabel{sec:gen-out-priv-defense}{{4.2.1}{2}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Gen's Output Authenticity}{2}}
 \newlabel{sec:gen-output-auth}{{4.2.2}{2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Defense Against Malicious Gen}{2}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Gen's Input Consistency}{2}}
-\newlabel{sec:gen-inp-consist-defense}{{4.3.1}{2}}
-\@writefile{tdo}{\contentsline {todo}{Come back to the previous line. Gen is not necessarily using the same input keys all over the place.}{2}}
-\pgfsyspdfmark {pgfid1}{20112833}{13320479}
+\@writefile{tdo}{\contentsline {todo}{is $\nu = u_{a}^{m}$? This is the best I can tell.}{2}}
+\pgfsyspdfmark {pgfid2}{20112833}{8036626}
 \citation{fast2pc}
 \citation{LP07}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Defense Against Malicious Gen}{3}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Gen's Input Consistency}{3}}
+\newlabel{sec:gen-inp-consist-defense}{{4.3.1}{3}}
 \citation{LP07}
 \citation{LP07}
 \citation{fast2pc}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.2}Selective Failure}{3}}
-\newlabel{k-probe-matrix}{{4.3.2}{3}}
 \citation{HEKM}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.2}Selective Failure}{4}}
+\newlabel{sec:selective-failure-defense}{{4.3.2}{4}}
+\newlabel{k-probe-matrix}{{4.3.2}{4}}
+\@writefile{tdo}{\contentsline {todo}{I still don't understand this. The coefficients are drawn from $\mathbb  {F}_{2^{t}}$ and used to find points in $\mathbb  {F}_{2^{t}}$, and then points in the polynomial from 0 to N are concatenated to get a point in $\mathbb  {F}_{2^{k}}$? TODO: error correction codes.}{4}}
+\pgfsyspdfmark {pgfid3}{20112833}{18776068}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Performance Considerations}{4}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Pipelining Evaluation}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Gate Communication}{4}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}A Protocol Secure Against Malicious Adversaries}{4}}
-\newlabel{step:inputs}{{1}{4}}
-\newlabel{step:gen-inp-commit}{{3}{4}}
-\newlabel{step:gen-label-commit}{{5}{5}}
-\@writefile{tdo}{\contentsline {todo}{Does $Gen$ generate entire circuits here, or are these keys enough? I think it is implied that $Gen$ must actually generate the whole circuit in order to get the output keys.}{5}}
-\pgfsyspdfmark {pgfid2}{20932034}{42556711}
-\@writefile{tdo}{\contentsline {todo}{Do the $\theta $s in the above (which represent randomness for the commitment) need to be separate, or even independent?}{5}}
-\pgfsyspdfmark {pgfid3}{21652930}{35376038}
-\@writefile{tdo}{\contentsline {todo}{Does $\Phi $ not require randomness in its commitments? Why?}{5}}
-\pgfsyspdfmark {pgfid4}{21652930}{27340467}
-\newlabel{step:eval-inp-ot}{{6}{5}}
-\newlabel{step:cut-and-choose}{{7}{5}}
-\@writefile{tdo}{\contentsline {todo}{are Gen's inputs to the OT the same length? Do we need padding?}{5}}
-\pgfsyspdfmark {pgfid5}{20932034}{11583274}
-\newlabel{step:circuit-garbling}{{8}{5}}
+\@writefile{tdo}{\contentsline {todo}{explain issues with random seed checking and hash construction}{5}}
+\pgfsyspdfmark {pgfid4}{20112833}{43664693}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Gate Communication}{5}}
+\@writefile{tdo}{\contentsline {todo}{polynomial interpolation.}{5}}
+\pgfsyspdfmark {pgfid5}{20112833}{28330202}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Random Seed Checking}{5}}
+\@writefile{tdo}{\contentsline {todo}{Communication cost of check circuits is independent of circuit size.}{5}}
+\pgfsyspdfmark {pgfid6}{20112833}{24752948}
+\@writefile{toc}{\contentsline {section}{\numberline {6}A Protocol Secure Against Malicious Adversaries}{5}}
+\newlabel{step:inputs}{{1}{5}}
+\@writefile{tdo}{\contentsline {todo}{How much randomness does $Gen$ need, or equivalently, how long should the seed $\rho $ be?}{6}}
+\pgfsyspdfmark {pgfid7}{20932034}{45024935}
+\newlabel{step:gen-inp-commit}{{3}{6}}
+\newlabel{step:gen-label-commit}{{5}{6}}
+\@writefile{tdo}{\contentsline {todo}{Does $Gen$ generate entire circuits here, or are these keys enough? It should be implied that $Gen$ must actually generate the whole circuit in order to get the output keys.}{6}}
+\pgfsyspdfmark {pgfid8}{20932034}{33152800}
+\@writefile{tdo}{\contentsline {todo}{Do the $\theta $s in the above (which represent randomness for the commitment) need to be separate, or even independent?}{6}}
+\pgfsyspdfmark {pgfid9}{21652930}{25850356}
+\@writefile{tdo}{\contentsline {todo}{Does $\Phi $ not require randomness in its commitments? Why?}{6}}
+\pgfsyspdfmark {pgfid10}{21652930}{17632128}
+\newlabel{step:eval-inp-ot}{{6}{6}}
+\newlabel{step:cut-and-choose}{{7}{6}}
+\@writefile{tdo}{\contentsline {todo}{are Gen's inputs to the OT the same length? Do we need padding?}{7}}
+\pgfsyspdfmark {pgfid11}{20932034}{44355736}
+\newlabel{step:circuit-garbling}{{8}{7}}
+\@writefile{tdo}{\contentsline {todo}{come back to this equation.}{7}}
+\pgfsyspdfmark {pgfid12}{20932034}{34364843}
+\@writefile{tdo}{\contentsline {todo}{talk about using optimizations described above in communication (and talk about them!)}{7}}
+\pgfsyspdfmark {pgfid13}{20932034}{31616694}
+\newlabel{step:circuit-check}{{9}{7}}
+\newlabel{step:circuit-evaluate}{{10}{7}}
 \bibstyle{IEEEtran}
 \bibdata{protocols}
-\@writefile{tdo}{\contentsline {todo}{come back to this equation.}{6}}
-\pgfsyspdfmark {pgfid6}{20932034}{45387387}
-\@writefile{tdo}{\contentsline {todo}{talk about using optimizations described above in communication (and talk about them!)}{6}}
-\pgfsyspdfmark {pgfid7}{20932034}{42651824}
-\newlabel{step:circuit-check}{{9}{6}}
-\newlabel{step:circuit-evaluate}{{10}{6}}
-\newlabel{step:majority}{{11}{6}}
-\newlabel{step:gen-out-auth}{{12}{6}}
 \bibcite{two-output}{1}
 \bibcite{fast2pc}{2}
 \bibcite{billiongate}{3}
 \bibcite{yaoprotocols}{4}
 \bibcite{LP07}{5}
 \bibcite{HEKM}{6}
-\@writefile{tdo}{\contentsline {todo}{There will be a version where Gen has to generate all the circuits twice (so as not to keep them in memory unnecessarily). Make this inclusion in the above list. Also, include the part about cutting down communication.}{7}}
-\pgfsyspdfmark {pgfid8}{20112833}{46210043}
+\newlabel{step:majority}{{11}{8}}
+\newlabel{step:gen-out-auth}{{12}{8}}
+\@writefile{tdo}{\contentsline {todo}{There will be a version where Gen has to generate all the circuits twice (so as not to keep them in memory unnecessarily). Make this inclusion in the above list. Also, include the part about cutting down communication.}{8}}
+\pgfsyspdfmark {pgfid14}{20112833}{33940084}

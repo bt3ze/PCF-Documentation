@@ -68,7 +68,7 @@ This survey will give an overview of the BetterYao implementation of secure comp
 
 % Notation
 \subsection{Notation}
-We will discuss the protocol for securely evaluation a function $f(x,y) = (f_{1}(x,y),f_{2}(x,y))$ by two players $P_{1}$ and $P_{2}$, where $P_{1}$'s input is $x$, $P_{1}$'s output is $f_{1}$, $P{_2}$'s input is $y$, and $P_{2}$'s output is $f_{2}$. In our protocols, one of the players will take the role of {\it generator} and one will take the role of {\it evaluator}, or $Gen$ and $Eval$, respectively. Without loss of generality, we can assume that $P_{1}$ will be $Gen$ and $P_{2}$ will be $Eval$. \\
+We will discuss the protocol for securely evaluation a function $f(x,y) = (f_{1}(x,y),f_{2}(x,y))$ by two players $P_{1}$ and $P_{2}$, where $P_{1}$'s input is $x$, $P_{1}$'s output is $f_{1}$, $P{_2}$'s input is $y$, and $P_{2}$'s output is $f_{2}$. In our protocols, one of the players will take the role of \emph{generator} and one will take the role of \emph{evaluator}, or $Gen$ and $Eval$, respectively. Without loss of generality, we can assume that $P_{1}$ will be $Gen$ and $P_{2}$ will be $Eval$. \\
 
 For each wire $w_{i}$ in the circuit, $Gen$ randomly picks two keys, $K_{i,0}$, $K_{i,1}$, and a permutation bit $\pi_{i}$. Each key is the length of the security parameter $k$. The {\it label} for each wire $w_{i}$ consists of the pair $(K_{i,b}, b \oplus \pi_{i})$ and is denoted $W_{i,b}$.
 
@@ -85,7 +85,7 @@ So that $Eval$ cannot trivially read the values of $Gen$'s output wires, $Gen$ c
 
 % Malicious Eval
 \subsection{Malicious Eval}
-The two-party protocol we describe is not {\it fair} in the sense that if $Eval$ does not want to, she does not have to send $Gen$ his outputs, but in this case $Gen$ knows that $Eval$ has cheated. $Eval$ can behave maliciously against $Gen$ in two other ways during this protocol: she can attempt to learn $Gen$'s outputs or she can report false outputs to $Gen$. We will refer to these as attacks against $Gen$'s {\it output privacy} and $Gen$'s {\it output authenticity}.\\
+The two-party protocol we describe is not {\it fair} in the sense that if $Eval$ does not want to, she does not have to send $Gen$ his outputs, but in this case $Gen$ knows that $Eval$ has cheated. $Eval$ can behave maliciously against $Gen$ in two other ways during this protocol: she can attempt to learn $Gen$'s outputs or she can report false outputs to $Gen$. We will refer to these as attacks against $Gen$'s \emph{output privacy} and $Gen$'s \emph{output authenticity}.\\
 
 %Malicious Gen
 \subsection{Malicious Gen}
@@ -105,7 +105,11 @@ $Gen$ could infer information about $Eval$'s inputs by providing a incorrect key
 
 % Cut and Choose
 \subsection{Cut and Choose}
-Before explaining defenses to specific concerns about $Gen$ and $Eval$ acting maliciously, we first discuss the {\it Cut and Choose} technique for circuit evaluation in the malicious setting. Intuitively, $Gen$ will construct many circuits (the number determined by some security parameter) and send them to Eval, or at least commit to them. $Gen$ and $Eval$ will collaboratively choose some of the circuits at random to become ``check circuits,'' with the rest being ``evaluation circuits.'' $Gen$ will reveal the private randomness used to construct the ``check circuits,'' and $Eval$ will verify their authenticity. $Eval$ will evaluate the ``evaluation circuits'' as in the Yao protocol and select the output of the majority circuit as the protocol's output.
+Before explaining defenses to specific concerns about $Gen$ and $Eval$ acting maliciously, we first discuss the \emph{Cut and Choose} technique for circuit evaluation in the malicious setting. Intuitively, $Gen$ will construct many circuits (the number determined by some security parameter) and send them to Eval, or at least commit to them. $Gen$ and $Eval$ will collaboratively choose some of the circuits at random to become ``check circuits,'' with the rest being ``evaluation circuits.'' $Gen$ will reveal the private randomness used to construct the ``check circuits,'' and $Eval$ will verify their authenticity. $Eval$ will evaluate the ``evaluation circuits'' as in the Yao protocol and select the output of the majority circuit as the protocol's output. However, for security purposes, $Gen$ cannot know which circuits are check circuits and which are evaluation circuits, since if he did, he might change a circuit's output by switching the output keys for intermediate gates. \\
+
+~\cite{two-output} showed that a 3:2 ratio of check circuits to evaluation circuits is near optimal (and better than 1:1). 
+
+\todo[inline]{Eval performs random seed checking. Explain the checks that Eval performs and what she has to do in order to perform the checks. There's a piece missing somewhere about how to compute the hash of a circuit.}
 
 % Defenses Against Eval
 \subsection{Defenses Against Malicious Eval}
@@ -117,6 +121,26 @@ As explained in Section \ref{sec:HBC}, $Gen$'s input privacy can be protected us
 
 %Gen Output Authenticity
 \subsubsection{Gen's Output Authenticity} \label{sec:gen-output-auth}
+At the end of circuit evaluation, $Eval$ has outputs for both herself and $Gen$. Our protocol is not \emph{fair} because $Eval$ is not required to send $Gen$ his outputs, but if $Eval$ chooses to, she may attempt to deceive $Gen$. To convince $Gen$ that $Eval$ has been honest and to satisfy $Gen$'s concerns, they use a witness-indistinguishable proof.  \\
+
+{\large \textbf{Proof of Gen's Output Authenticity}} \\ 
+\textbf{Private Inputs}\\
+$Gen$ has the output keys $\{(u_{0}^{j},u_{1}^{j})\}_{j \in [s]}$. $Eval$ knows the index $m \in [s]$ of the majority circuit and the random key $\nu$ corresponding to $Gen$'s output wire of value $a$. \todo[inline]{is $\nu = u_{a}^{m}$? This is the best I can tell.}
+\textbf{Shared Inputs}\\
+$Gen$ and $Eval$ share the security parameter $1^{k}$, statistical parameter $1^{s}$, the commitments to $Gen$'s output keys $\{(com(u_{0}^{j}), com(u_{1}^{(j)}))\}_{j \in [s]}$, and $Gen$'s output $a$.
+
+\begin{enumerate}
+	\item $Gen$ chooses a random nonce $r \in \{0,1\}^{k}$ and he encrpyts it with each gate key $u_{a}^{(j)}$. He sends $Eval$ the encryptions $enc_{u_{a}^{(1)}}(r) || enc_{u_{a}^{(2)}}(r) || \cdots || enc_{u_{a}^{(s)}}(r) = c^{(1)} || c^{(2)} || \cdots || c^{(s)} $
+	\item $Eval$ commits to the decryption of $c^{(m)}$ and sends it to $Gen$. Formally, she sends $com(dec_{v}(c^{m})) = com(r')$ to $Gen$.
+	\item $Gen$ receives $r'$ and then decommits to all of the keys $\{u_{a}^{(j)}\}_{j \in [s]}$
+	\item $Eval$ checks $Gen$'s decommitments to determine if:
+	\begin{enumerate}[label=(\alph*)]
+		\item $com(u_{a}^{j})$ correctly decommits to $u^{(j)}$ for $j \in [s]$
+		\item $dec_{u_{a}^{(i)}}(c^{(i)}) = dec_{u_{a}^{(j)}}(c^{(j)}) \text{ for all } i,j \in [s], i \neq j$
+	\end{enumerate}
+	If any of the checks fails, $Eval$ aborts. Otherwise, $Eval$ decommits to $r'$
+	\item $Gen$ checks that $com(r')$ decommits properly to $r$. If so, he accepts. Otherwise, he rejects.
+\end{enumerate}
 
 % Defenses Against Malicious Gen
 \subsection{Defense Against Malicious Gen}
@@ -124,17 +148,17 @@ As explained in Section \ref{sec:HBC}, $Gen$'s input privacy can be protected us
 % Gen's Input Consistency
 \subsubsection{Gen's Input Consistency} \label{sec:gen-inp-consist-defense}
 
-The intuition to defend against this attack is to supplement our objective circuit with a 2-universal hash circuit that will compute some function over $Gen$'s inputs which $Eval$ can verify  for each circuit evaluation. Critical to the hash circuit are the properties of hiding and collision-freeness. Simply, to preserve the privacy property of the protocol, the output of the hash circuit should reveal no information to $Eval$ about $Gen$'s inputs. Collision-freeness effectively binds $Gen$ to his inputs; because two inputs are hard for $Gen$ to find that will evaluate to the same hash, $Gen$ must use the same input keys for each garbled circuit that uses the same hash circuit. \todo[inline]{Come back to the previous line. Gen is not necessarily using the same input keys all over the place.} Two-Universal hash circuits satisfy the binding property by definition, since they fulfill the requirement that for fixed, distinct inputs $x$ and $y$, the probability that a random hash function $h : A \rightarrow B $ satisfies $h(x) = h(y)$ is at most $1/|B|$. \\
+The intuition to defend against this attack is to supplement our objective circuit with a 2-universal hash circuit that will compute some function over $Gen$'s inputs which $Eval$ can verify for each circuit evaluation. It's critical that the hash function is both hiding and collision-free. Simply, to preserve the privacy property of the protocol, the output of the hash circuit should reveal no information to $Eval$ about $Gen$'s inputs. Collision-freeness effectively binds $Gen$ to his inputs; because two inputs are hard for $Gen$ to find that will evaluate to the same hash, $Gen$ must use the same semantic inputs for each garbled circuit that uses the same hash circuit (and because all garbled circuits use the same hash circuit, $Gen$'s input must be consistent). Two-Universal hash circuits satisfy the binding property by definition, since they fulfill the requirement that for fixed, distinct inputs $x$ and $y$, the probability that a random hash function $h : A \rightarrow B $ satisfies $h(x) = h(y)$ is at most $1/|B|$. \\
 
 It follows that if $x_{i}$ is $Gen$'s input to evaluation circuit $i$, then the consistency of the hashes $h(x_1),h(x_2),...,h(x_n)$ will imply the consistency of each $x_i$ with probability at least $1-1/|B|$. Because the difficulty of finding collisions for 2-Universal hash functions is defined with \emph{a posteriori} knowledge of the inputs $x$ and $y$, the hash function must be chosen during the protocol \emph{after} $Gen$ commits to his inputs. Here, $Gen$ commits to his input keys rather than his actual inputs in order to preserve privacy during the reveal phase. \\
 
-It is not sufficient to simply incorporate a 2-Universal hash circuit into the protocol, since for circuits where $Gen$ has few inputs, $Eval$ can simply run all possible inputs by $Gen$ through the hash circuit to find a matching hash and learn $Gen$'s inputs. In addition, the 2-Universal hash circuit must also be randomized. ~\cite{fast2pc} use the Leftover Hash Lemma to show that $Gen$ must pick $2k + lg(k)$ bits of fresh randomness at the beginning of the protocol as input to this hash function in order to achieve security according to parameter $k$, and that the output of the 2-Universal hash function will appear pseudorandom even if the hash function is made public. \\
+It is not sufficient to simply add an auxiliary 2-Universal hash circuit to the protocol, since for circuits where $Gen$ has few inputs, $Eval$ can simply run all possible inputs by $Gen$ through the hash circuit to find a matching hash and learn $Gen$'s inputs. In addition, the 2-Universal hash circuit must also be randomized (or, in a sense, salted). ~\cite{fast2pc} use the Leftover Hash Lemma to show that $Gen$ must pick $2k + lg(k)$ bits of fresh randomness at the beginning of the protocol as input to this hash function in order to achieve security according to parameter $k$, and that the output of the 2-Universal hash function will appear pseudorandom even if the hash function is made public. \\
 
 The hash function is chosen from the family $$\mathcal{M} = \{ h_{M} | M \in \{0,1\}^{m \times n} \wedge h_{M}(x) = M \cdot x \text{ for some } m,n \in \mathbb{N} \}$$
 which has the advantage that the hash circuit can be computed with only XOR-gates, making the computation overhead to the protocol minimal when using free-XOR.
 
 % Selective Failure
-\subsubsection{Selective Failure}
+\subsubsection{Selective Failure} \label{sec:selective-failure-defense}
 
 At a high level, he defense for this attack, first given by ~\cite{LP07}, is to provide a transformation that converts $Eval$'s true input $y$ into the her protocol input $\overline{y}$, and have an auxiliary circuit convert $\overline{y}$ back into $y$ during circuit evaluation. $Eval$ does this by choosing some $M \in \{0,1\}^{n \times m} \text{ for some } m \in \mathbb{N}$ and computes $M \cdot \overline{y} = y$. This technique requires that the $Gen$ be unable to infer any information about $y$ from knowledge he may gain about $\overline{y}$.  We require the following definition:\\
 
@@ -163,6 +187,7 @@ Lindell and Pinkas ~\cite{LP07} point out that as long as $m$ is big enough, the
 \Return $M$ // $M \in \{0,1\}^{n \times m}$, where $m=Nt$
 \end{algorithmic}
 \end{algorithm}
+\todo[inline]{I still don't understand this. The coefficients are drawn from $\mathbb{F}_{2^{t}}$ and used to find points in $\mathbb{F}_{2^{t}}$, and then points in the polynomial from 0 to N are concatenated to get a point in $\mathbb{F}_{2^{k}}$? TODO: error correction codes.}
 
 The algorithm constructs a k-probe-resistant matrix $M$ by randomly picking polynomials $P_1,P_2,...,P_n \in \mathbb{F}_{2^{t}}[x]$ with degree at most K-1,where $n$ is the evaluator's input size. The polynomials are evaluated at points $x_1,x_2,...x_N \in \mathbb{F}_{2^{t}}$,  and the outputs for each $P_i$ over the points are concatenated as a $N \cdot t$-bit vector which becomes the \emph{i}-th row of $M$.
 
@@ -199,7 +224,16 @@ This section details a couple of engineering improvements to reduce the amount o
 \subsection{Pipelining Evaluation}
 When circuits become millions or billions of gates large, it becomes infeasible to retain the entire circuit in memory, especially when multiple circuits must be evaluated to attain security in the malicious setting. HEKM ~\cite{HEKM} showed that holding entire circuits in memory is unnecessary, as $Gen$ and $Eval$ can execute the protocol while only retaining gates in memory that they need at the moment. To do this, $Gen$ and $Eval$ evaluate all of the circuits in lockstep and pipeline the garbling of gates with their evaluation. $Gen$ garbles $\sigma$ gates at once, all corresponding to the same gate in the evaluation circuit, and sends them to $Eval$ together. While $Gen$ is garbling, $Eval$ evaluates the last batch that $Gen$ sent. 
 
+\todo[inline]{explain issues with random seed checking and hash construction}
+
 \subsection{Gate Communication}
+
+Recall that 60\% of the circuits in our protocol are check circuits, but $Gen$ does not know which circuits are check circuits and which are evaluation circuits. We'd like to find a way to prevent $Gen$ from having to send all of the garbled gates over the communication channel when he only really needs to send 40\% of them. Let the statistical security parameter used to decide the number of evaluation circuits be $\sigma$, and let $\mu$ be the number of check circuits. $Gen$ should only have to communicate $\sigma - \mu$ pieces of information, one per evaluation circuit, in order for $Eval$ to infer all of the garbled gates $\{g_{0}, g_{1}, \dots, g_{\sigma -1} \}$.\\
+
+To do this, $Gen$ considers all of the garbled gate descriptions $\{g_{0}, g_{1}, \dots, g_{\sigma} \}$ to be coefficients of a polynomial, $$P(x) = g_{0} + g_{1}x + g_{2}x^{2} + \dots + g_{\sigma-1}x^{\sigma-1}$$ and sends $Eval$ $\sigma - \mu$ points of the polynomial $P(1), P(2), \dots , P(\sigma - \mu)$.  $Eval$ can now use the coefficients she generates from the check circuits and polynomial interpolation to recover the gates she does now know. This technique sacrifices this small amount of communication overhead to save 60\% of the communication cost.
+
+\subsection{Random Seed Checking}
+\todo[inline]{Communication cost of check circuits is independent of circuit size.}
 
 \section{A Protocol Secure Against Malicious Adversaries}
 
@@ -210,28 +244,29 @@ $Gen$'s private inputs to the protocol are $x_{i} \in x$ and $Eval$'s private in
 \textbf{Shared Inputs: }
 $Gen$ and $Eval$ agree upon a function $f : (x,y) \rightarrow (f_{1},f_{2})$.  $Gen$ and $Eval$ also agree on a security parameter $1^{k}$ and a statistical parameter $1^{\sigma}$. They use a commitment scheme $com$ and a symmetric encryption scheme $(enc,dec)$. \\
 \textbf{Notation: }
-$Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length $m_1$ and $Eval$'s inputs $\overline{y}$ (described in step \ref{step:inputs}) have length $m_2$.  Consider any input key $K_{b,i}^{(j)} \in \{0,1\}^{k}$. $K$ has length $k$ and semantic value $b \in \{0,1\}$, it is a key for the \emph{i}th wire in its circuit, and it belongs to circuit $j$. Let $W_{i,b}^{(j)}$ be the \emph{label} corresponding to the \emph{i}th wire $w$ in circuit \emph{j} such that $W_{i,b}^{(j)}$ has semantic value $b$. $W_{i}^{(j)}$ has unknown semantic value.
+$Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length $m_1$ and $Eval$'s inputs $\overline{y}$ (described in step \ref{step:inputs}) have length $m_2$.  Consider any input key $K_{b,i}^{(j)} \in \{0,1\}^{k}$. $K$ has length $k$ and semantic value $b \in \{0,1\}$, is a key for the \emph{i}th wire in its circuit, and belongs to circuit $j$. Let $W_{i,b}^{(j)}$ be the \emph{label} corresponding to the \emph{i}th wire $w$ in circuit \emph{j} such that $W_{i,b}^{(j)}$ has semantic value $b$. ($W_{i}^{(j)}$ has unknown semantic value).
 
 \begin{enumerate}
 	% Input Modification
 	\item \label{step:inputs} \textbf{Input Modification}\\
-	$Gen$ generates randomness $r \in \{0,1\}^{2k+\lg(k)}$, which will be used as input to the 2-Universal circuit described in section \ref{sec:gen-inp-consist-defense}. $Gen$ also generates a one-time pad $e$ which will be used to mask his outputs, as described in section \ref{sec:gen-out-priv-defense}. $Eval$ computes her \emph{k}-probe-resistant matrix $M$ and input $\overline{y}$ such that $M \cdot \overline{y} = y$. $Gen$'s input is now $\overline{x} = x || e || r$ and $Eval$'s input is now $\overline{y}$.
+	$Gen$ generates randomness $r \in \{0,1\}^{2k+\lg(k)}$, which will be used as input to the 2-Universal circuit described in section \ref{sec:gen-inp-consist-defense}. $Gen$ also generates a one-time pad $e$ which will be used to mask his outputs, as described in section \ref{sec:gen-out-priv-defense}. $Eval$ computes her \emph{k}-probe-resistant matrix $M$ (as described in section \ref{sec:selective-failure-defense}) and input $\overline{y}$ such that $M \cdot \overline{y} = y$. $Gen$'s input is now $\overline{x} = x || e || r$ and $Eval$'s input is now $\overline{y}$.
 	
 	% Gen Randomly Generates Input Keys
 	\item \textbf{Gen Randomly Generates Input Keys}\\
 	$Gen$ generates randomness $\{\rho^{(j)}\}_{j \in \sigma}$, where $\rho^{(j)}$ corresponds to the randomness used for the \emph{j}th circuit. He uses each $\rho^{(j)}$ to generate input keys and permutation bits $(K_{0,i}^{(j)},K_{1,i}^{(j)},\pi_{i}^{(j)}) \in \{0,1\}^{2k+1} \text{ for } i \in \overline{x}$ for each circuit $j \in \sigma$.
+	\todo[inline]{How much randomness does $Gen$ need, or equivalently, how long should the seed $\rho$ be?}
 	
 	% Gen Input Commitments
 	\item \label{step:gen-inp-commit} \textbf{Gen Commits to His Input}\\
 	$Gen$ generates new randomness $\gamma_{i}^{(j)}$ (independent of $\rho^{(j)}$) for $i \in \overline{x} \text{ and  }j \in \sigma$ and commits to all of the keys that correspond to his circuit inputs. He sends $\Gamma = \{com(W_{i,b}^{(j)};\gamma_{i}^{(j)})\}_{i \in \overline{x}}$ to $Eval$.
 	
-	% Agree on Objective Circuit
-	\item \textbf{Agree on the Objective Circuit}\\
-	$Eval$ announces $M$ to $Gen$ and then $Gen$ and $Eval$ run an interactive coin-flipping protocol to generate the two-universal circuit $H \in \{0,1\}^{k \times m_1}$. They now both know the full objective circuit \emph{C} to compute $g : (\overline{x},\overline{y}) \rightarrow (\bot, (h,c,g_2))$ where $H = h \cdot \overline{x}$, $c=g_{1}\oplus e$, $g_{1} = f_{1}(x, M\cdot\overline{y})$, and $g_{2} = f_{2}(x,M\cdot\overline{y})$.
+	% Agreement on Objective Circuit
+	\item \textbf{Agreement on the Objective Circuit}\\
+	$Eval$ announces $M$ to $Gen$ and then $Gen$ and $Eval$ run an interactive coin-flipping protocol to generate the two-universal circuit $H \in \{0,1\}^{k \times m_1}$ used to compute a hash over $Gen$'s inputs. They now both know the full objective circuit \emph{C} to compute $g : (\overline{x},\overline{y}) \rightarrow (\bot, (h,c,g_2))$ where $h = H \cdot \overline{x}$, $c=g_{1}\oplus e$, $g_{1} = f_{1}(x, M\cdot\overline{y})$, and $g_{2} = f_{2}(x,M\cdot\overline{y})$.
 	
 	% Gen Commits to I/O Labels
 	\item \label{step:gen-label-commit} \textbf{Gen Commits to Input and Output Labels}\\
-	$Gen$ uses $\rho^{(j)}$ to generate input keys for $Eval$'s inputs and output keys for his own outputs. \todo[inline]{Does $Gen$ generate entire circuits here, or are these keys enough? I think it is implied that $Gen$ must actually generate the whole circuit in order to get the output keys.}  He then sends $(\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)})_{j \in \sigma}$ to $Eval$, where $\Theta$ represents $Gen$'s input labels, $\Omega$ represents $Eval$'s input labels, and $\Phi$ represents $Gen$'s output labels (specifically, the values of $c$):
+	$Gen$ uses $\rho^{(j)}$ to generate input keys for $Eval$'s inputs and output keys for his own outputs. \todo[inline]{Does $Gen$ generate entire circuits here, or are these keys enough? It should be implied that $Gen$ must actually generate the whole circuit in order to get the output keys.}  He then sends $(\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)})_{j \in \sigma}$ to $Eval$, where $\Theta$ represents $Gen$'s input labels, $\Omega$ represents $Eval$'s input labels, and $\Phi$ represents $Gen$'s output labels (specifically, the values of $c$):
 	\begin{enumerate}[label=(\alph*)]
 		\item $\Theta^{(j)}  = \{com(W_{i,0\oplus\pi_{i}^{(j)}}^{(j)};\theta_{i}^{(j)}),com(W_{i,1\oplus\pi_{i}^{(j)}}^{(j)};\theta_{i}^{(j)})\}_{i \in m_{1}}$ where $\theta$ is randomness used in the commitment.\\
 		\todo[inline]{Do the $\theta$s in the above (which represent randomness for the commitment) need to be separate, or even independent?}
@@ -275,7 +310,7 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 			\item if the \emph{i}th entry of $X_{1}^{(j)}$ received in step \ref{step:cut-and-choose} successfully decommits the \emph{i}th entry in $\Gamma^{(j)}$ received in step \ref{step:gen-inp-commit}.
 			\item if the \emph{i}th entry of $X_{2}^{(j)}$ received in step \ref{step:cut-and-choose} successfully decommits the $(2\cdot i + \overline{x}_{i} \oplus \pi_{i}^{(j)})$-th entry of $\Theta^{(j)}$ received in step \ref{step:gen-label-commit}.
 			\item if the decommitted labels from the above two checks are consistent with each other.
-			\item if the set of $Eval$ inputs $Y_{(j)}$ received in step \ref{step:eval-inp-ot} is consistent with half of the commitments in $\Omega^{(j)}$ received in step \ref{step:gen-label-commit}. Specifically, the \emph{i}th entry of $Y^{(j)}$ should decommit the $(2\cdot i + \overline{y}_{i})$th entry in $\Omega^{(j)}$.
+			\item if the set of $Eval$ inputs $Y^{(j)}$ received in step \ref{step:eval-inp-ot} is consistent with half of the commitments in $\Omega^{(j)}$ received in step \ref{step:gen-label-commit}. Specifically, the \emph{i}th entry of $Y^{(j)}$ should decommit the $(2\cdot i + \overline{y}_{i})$th entry in $\Omega^{(j)}$.
 		\end{enumerate}
 	\end{enumerate}
 	If any failure occurs, $Eval$ aborts.

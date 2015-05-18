@@ -16,7 +16,7 @@
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Selective Failure}{2}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Security in the Malicious Setting}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Cut and Choose}{2}}
-\@writefile{tdo}{\contentsline {todo}{Eval performs random seed checking. Explain the checks that Eval performs and what she has to do in order to perform the checks. There's a piece missing somewhere about how to compute the hash of a circuit.}{2}}
+\@writefile{tdo}{\contentsline {todo}{Eval performs random seed checking. Explain the checks that Eval performs and what she has to do in order to perform the checks. Perhaps include a piece here about how some constructions compute the hash of a circuit.}{2}}
 \pgfsyspdfmark {pgfid1}{20112833}{24877763}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Defenses Against Malicious Eval}{2}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Gen's Output Privacy}{2}}
@@ -33,47 +33,65 @@
 \citation{LP07}
 \citation{LP07}
 \citation{fast2pc}
-\citation{HEKM}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.2}Selective Failure}{4}}
 \newlabel{sec:selective-failure-defense}{{4.3.2}{4}}
 \newlabel{k-probe-matrix}{{4.3.2}{4}}
-\@writefile{tdo}{\contentsline {todo}{I still don't understand this. The coefficients are drawn from $\mathbb  {F}_{2^{t}}$ and used to find points in $\mathbb  {F}_{2^{t}}$, and then points in the polynomial from 0 to N are concatenated to get a point in $\mathbb  {F}_{2^{k}}$? TODO: error correction codes.}{4}}
-\pgfsyspdfmark {pgfid3}{20112833}{18776068}
+\@writefile{tdo}{\contentsline {todo}{discuss Reed Solomon}{4}}
+\pgfsyspdfmark {pgfid3}{20112833}{14456789}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Performance Considerations}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Pipelining Evaluation}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Random Seed Checking}{4}}
+\@writefile{tdo}{\contentsline {todo}{Communication cost of check circuits is independent of circuit size.}{4}}
+\pgfsyspdfmark {pgfid4}{20112833}{6404872}
+\citation{HEKM}
+\citation{fast2pc}
+\citation{billiongate}
+\citation{freeXOR}
+\citation{GRR}
+\citation{GRR}
+\citation{freeXOR-security}
+\citation{flexor}
+\citation{half-gates}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Pipelining Evaluation}{5}}
+\newlabel{sec:pipeline-eval}{{5.2}{5}}
 \@writefile{tdo}{\contentsline {todo}{explain issues with random seed checking and hash construction}{5}}
-\pgfsyspdfmark {pgfid4}{20112833}{43664693}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Gate Communication}{5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Random Seed Checking}{5}}
-\@writefile{tdo}{\contentsline {todo}{Communication cost of check circuits is independent of circuit size.}{5}}
-\pgfsyspdfmark {pgfid5}{20112833}{25726553}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Building Blocks}{5}}
+\pgfsyspdfmark {pgfid5}{20112833}{37246386}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Gate Communication}{5}}
+\newlabel{sec:gate-comm-opt}{{5.3}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Building Blocks and Assumptions}{5}}
+\newlabel{sec:building-blocks-assumptions}{{6}{5}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Symmetric Encryption Scheme}{5}}
+\newlabel{sec:symmetric-enc-scheme}{{6.1}{5}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.2}OT Extension}{5}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Commitment Scheme}{5}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}A Protocol Secure Against Malicious Adversaries}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Garbling Techniques}{5}}
+\citation{?}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Randomness, Random Seeds, and PRNGs}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}A Protocol Secure Against Malicious Adversaries}{6}}
+\newlabel{sec:protocol}{{7}{6}}
 \newlabel{step:inputs}{{1}{6}}
-\@writefile{tdo}{\contentsline {todo}{How much randomness does $Gen$ need, or equivalently, how long should the seed $\rho $ be?}{6}}
-\pgfsyspdfmark {pgfid6}{20932034}{38718742}
+\@writefile{tdo}{\contentsline {todo}{How much randomness does $Gen$ need, or equivalently, how long should the seed $\rho $ be? There must be some relationship to the security parameter $k$.}{6}}
+\pgfsyspdfmark {pgfid6}{20932034}{17016546}
 \newlabel{step:gen-inp-commit}{{3}{6}}
-\newlabel{step:gen-label-commit}{{5}{6}}
-\@writefile{tdo}{\contentsline {todo}{Does $Gen$ generate entire circuits here, or are these keys enough? It should be implied that $Gen$ must actually generate the whole circuit in order to get the output keys.}{6}}
-\pgfsyspdfmark {pgfid7}{20932034}{27035679}
-\@writefile{tdo}{\contentsline {todo}{Do the $\theta $s in the above (which represent randomness for the commitment) need to be separate, or even independent?}{6}}
-\pgfsyspdfmark {pgfid8}{21652930}{19841276}
-\@writefile{tdo}{\contentsline {todo}{Does $\Phi $ not require randomness in its commitments? Why?}{6}}
-\pgfsyspdfmark {pgfid9}{21652930}{11785109}
-\newlabel{step:eval-inp-ot}{{6}{6}}
+\newlabel{step:gen-label-commit}{{5}{7}}
+\@writefile{tdo}{\contentsline {todo}{$Gen$ generates entire circuits here in order to derive his output keys, then throws them away (to save memory) and regenerates them again later.}{7}}
+\pgfsyspdfmark {pgfid7}{20932034}{36727330}
+\@writefile{tdo}{\contentsline {todo}{Do the $\theta $s in the above (which represent randomness for the commitment) need to be independent?}{7}}
+\pgfsyspdfmark {pgfid8}{21652930}{29452192}
+\@writefile{tdo}{\contentsline {todo}{Does $\Phi $ not require randomness in its commitments? Is the output of a hash function like SHA enough?}{7}}
+\pgfsyspdfmark {pgfid9}{21652930}{20884801}
+\newlabel{step:eval-inp-ot}{{6}{7}}
 \newlabel{step:cut-and-choose}{{7}{7}}
 \@writefile{tdo}{\contentsline {todo}{are Gen's inputs to the OT the same length? Do we need padding?}{7}}
-\pgfsyspdfmark {pgfid10}{20932034}{39273408}
-\newlabel{step:circuit-garbling}{{8}{7}}
-\@writefile{tdo}{\contentsline {todo}{come back to this equation.}{7}}
-\pgfsyspdfmark {pgfid11}{20932034}{29644468}
-\@writefile{tdo}{\contentsline {todo}{talk about using optimizations described above in communication (and talk about them!)}{7}}
-\pgfsyspdfmark {pgfid12}{20932034}{26948026}
-\newlabel{step:circuit-check}{{9}{7}}
-\newlabel{step:circuit-evaluate}{{10}{7}}
+\pgfsyspdfmark {pgfid10}{20932034}{46990288}
+\newlabel{step:circuit-garbling}{{8}{8}}
+\@writefile{tdo}{\contentsline {todo}{come back to this equation.}{8}}
+\pgfsyspdfmark {pgfid11}{20932034}{36999395}
+\newlabel{step:circuit-check}{{9}{8}}
+\@writefile{tdo}{\contentsline {todo}{formal proof?}{8}}
+\pgfsyspdfmark {pgfid12}{32565462}{19284331}
+\pgfsyspdfmark {pgfid15}{38356581}{19296619}
+\pgfsyspdfmark {pgfid16}{40470117}{19072705}
+\newlabel{step:circuit-evaluate}{{10}{8}}
 \bibstyle{IEEEtran}
 \bibdata{protocols}
 \bibcite{two-output}{1}
@@ -82,7 +100,10 @@
 \bibcite{yaoprotocols}{4}
 \bibcite{LP07}{5}
 \bibcite{HEKM}{6}
-\newlabel{step:majority}{{11}{8}}
-\newlabel{step:gen-out-auth}{{12}{8}}
-\@writefile{tdo}{\contentsline {todo}{There will be a version where Gen has to generate all the circuits twice (so as not to keep them in memory unnecessarily). Make this inclusion in the above list. Also, include the part about cutting down communication.}{8}}
-\pgfsyspdfmark {pgfid13}{20112833}{30802460}
+\bibcite{freeXOR}{7}
+\bibcite{GRR}{8}
+\bibcite{freeXOR-security}{9}
+\bibcite{flexor}{10}
+\newlabel{step:majority}{{11}{9}}
+\newlabel{step:gen-out-auth}{{12}{9}}
+\bibcite{half-gates}{11}

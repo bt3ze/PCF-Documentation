@@ -109,7 +109,7 @@ Before explaining defenses to specific concerns about $Gen$ and $Eval$ acting ma
 
 ~\cite{two-output} showed that a 3:2 ratio of check circuits to evaluation circuits is near optimal (and better than 1:1). 
 
-\todo[inline]{Eval performs random seed checking. Explain the checks that Eval performs and what she has to do in order to perform the checks. There's a piece missing somewhere about how to compute the hash of a circuit.}
+\todo[inline]{Eval performs random seed checking. Explain the checks that Eval performs and what she has to do in order to perform the checks. Perhaps include a piece here about how some constructions compute the hash of a circuit.}
 
 % Defenses Against Eval
 \subsection{Defenses Against Malicious Eval}
@@ -160,7 +160,7 @@ which has the advantage that the hash circuit can be computed with only XOR-gate
 % Selective Failure
 \subsubsection{Selective Failure} \label{sec:selective-failure-defense}
 
-At a high level, he defense for this attack, first given by ~\cite{LP07}, is to provide a transformation that converts $Eval$'s true input $y$ into the her protocol input $\overline{y}$, and have an auxiliary circuit convert $\overline{y}$ back into $y$ during circuit evaluation. $Eval$ does this by choosing some $M \in \{0,1\}^{n \times m} \text{ for some } m \in \mathbb{N}$ and computes $M \cdot \overline{y} = y$. This technique requires that the $Gen$ be unable to infer any information about $y$ from knowledge he may gain about $\overline{y}$.  We require the following definition:\\
+At a high level, the defense for this attack, first given by ~\cite{LP07}, is to provide a transformation that converts $Eval$'s true input $y$ into the her protocol input $\overline{y}$, and have an auxiliary circuit convert $\overline{y}$ back into $y$ during circuit evaluation. $Eval$ does this by choosing some $M \in \{0,1\}^{n \times m} \text{ for some } m \in \mathbb{N}$ and computes $M \cdot \overline{y} = y$. This technique requires that the $Gen$ be unable to infer any information about $y$ from knowledge he may gain about $\overline{y}$.  We require the following definition:\\
 
 $M \in \{0,1\}^{n \times m}$ for some $n,m \in \mathbb{N}$  is called \emph{k-probe-resistent} for some $k \in \mathbb{N}$ if for any $L \subset \{1,2,...,n\}$, the Hamming distance of $\oplus_{i \in L} M_{i} $ is at least $k$, where $M_{i}$ denotes the \emph{i-th} row of $M$.\\
 
@@ -187,66 +187,53 @@ Lindell and Pinkas ~\cite{LP07} point out that as long as $m$ is big enough, the
 \Return $M$ // $M \in \{0,1\}^{n \times m}$, where $m=Nt$
 \end{algorithmic}
 \end{algorithm}
-\todo[inline]{I still don't understand this. The coefficients are drawn from $\mathbb{F}_{2^{t}}$ and used to find points in $\mathbb{F}_{2^{t}}$, and then points in the polynomial from 0 to N are concatenated to get a point in $\mathbb{F}_{2^{k}}$? TODO: error correction codes.}
 
-The algorithm constructs a k-probe-resistant matrix $M$ by randomly picking polynomials $P_1,P_2,...,P_n \in \mathbb{F}_{2^{t}}[x]$ with degree at most K-1,where $n$ is the evaluator's input size. The polynomials are evaluated at points $x_1,x_2,...x_N \in \mathbb{F}_{2^{t}}$,  and the outputs for each $P_i$ over the points are concatenated as a $N \cdot t$-bit vector which becomes the \emph{i}-th row of $M$.
+The algorithm constructs a k-probe-resistant matrix $M$ by randomly picking polynomials $P_1,P_2,...,P_n \in \mathbb{F}_{2^{t}}[x]$ with degree at most K-1,where $n$ is the evaluator's input size. The polynomials are evaluated at points $x_1,x_2,...x_N \in \mathbb{F}_{2^{t}}$,  and the outputs for each $P_i$ over the points are concatenated as a $N \cdot t$-bit vector which becomes the \emph{i}-th row of $M$.\\
 
-% 
-%\begin{algorithm}
-%\caption{GaleShapley(S,R,P):}
-%\label{gale-shapley-original}
-%\begin{algorithmic}
-%    \STATE $S' = S$
- %   \WHILE{$\exists s \in S'$}
- %       \STATE $s \leftarrow S'$
- %       \STATE $r \leftarrow p_s | p_s(r) \geq ps(r')~ \forall r'\in R$  such that $s$ has not already chosen $r,r'$
-%        \IF{$(\cdot,r) = \emptyset$}
-%            \STATE $M' = M' \cup \lbrace(s,r)\rbrace$
-%            \STATE $S' = S' \backslash \lbrace s\rbrace$
-%        \ELSE
-%            \STATE $s' \leftarrow (\cdot,r)$
-%            \IF{$p_r(s) > p_r(s')$ - that is, $r$ prefers $s$ to $s'$}
-%                \STATE $M' = M' \backslash \lbrace (s',r)\rbrace$
-%                \STATE $S' = S' \cup \lbrace s' \rbrace$
-%                \STATE $M' = M' \cup \lbrace (s,r) \rbrace$
-%                \STATE $S' = S' \backslash \lbrace s \rbrace$
-%            \ENDIF
-%        \ENDIF
-%    \ENDWHILE
-%    \RETURN $M'$
-%\end{algorithmic}
-%\end{algorithm}
-%
+This reduces the problem of probe resistance to Reed Solomon error correction codes.
+\todo[inline]{discuss Reed Solomon}
 
 \section{Performance Considerations}
 This section details a couple of engineering improvements to reduce the amount of computation and communication involved in the protocol.
 
-\subsection{Pipelining Evaluation}
+\subsection{Random Seed Checking}
+\todo[inline]{Communication cost of check circuits is independent of circuit size.}
+Recall that in the cut-and-choose paradigm, $Gen$ and $Eval$ must agree on some number of check circuits that $Eval$ will verify.
+
+\subsection{Pipelining Evaluation} \label{sec:pipeline-eval}
 When circuits become millions or billions of gates large, it becomes infeasible to retain the entire circuit in memory, especially when multiple circuits must be evaluated to attain security in the malicious setting. HEKM ~\cite{HEKM} showed that holding entire circuits in memory is unnecessary, as $Gen$ and $Eval$ can execute the protocol while only retaining gates in memory that they need at the moment. To do this, $Gen$ and $Eval$ evaluate all of the circuits in lockstep and pipeline the garbling of gates with their evaluation. $Gen$ garbles $\sigma$ gates at once, all corresponding to the same gate in the evaluation circuit, and sends them to $Eval$ together. While $Gen$ is garbling, $Eval$ evaluates the last batch that $Gen$ sent. 
 
 \todo[inline]{explain issues with random seed checking and hash construction}
 
-\subsection{Gate Communication}
+\subsection{Gate Communication} \label{sec:gate-comm-opt}
 
 Recall that 60\% of the circuits in our protocol are check circuits, but $Gen$ does not know which circuits are check circuits and which are evaluation circuits. We'd like to find a way to prevent $Gen$ from having to send all of the garbled gates over the communication channel when he only really needs to send 40\% of them. Let the statistical security parameter used to decide the number of evaluation circuits be $\sigma$, and let $\mu$ be the number of check circuits. $Gen$ should only have to communicate $\sigma - \mu$ pieces of information, one per evaluation circuit, in order for $Eval$ to infer all of the garbled gates $\{g_{0}, g_{1}, \dots, g_{\sigma -1} \}$.\\
 
-To do this, $Gen$ considers all of the garbled gate descriptions $\{g_{0}, g_{1}, \dots, g_{\sigma} \}$ to be coefficients of a polynomial, $$P(x) = g_{0} + g_{1}x + g_{2}x^{2} + \dots + g_{\sigma-1}x^{\sigma-1}$$ and sends $Eval$ $\sigma - \mu$ points of the polynomial $P(1), P(2), \dots , P(\sigma - \mu)$.  $Eval$ can now use the coefficients she generates from the check circuits and polynomial interpolation to recover the gates she does now know. This technique sacrifices this small amount of communication overhead to save 60\% of the communication cost.
+To do this, $Gen$ considers all of the garbled gate descriptions $\{g_{0}, g_{1}, \dots, g_{\sigma} \}$ to be coefficients of a polynomial, $$P(x) = g_{0} + g_{1}x + g_{2}x^{2} + \dots + g_{\sigma-1}x^{\sigma-1}$$ and sends $Eval$ $\sigma - \mu$ points of the polynomial $P(1), P(2), \dots , P(\sigma - \mu)$.  $Eval$ can now use the coefficients she generates from the check circuits and polynomial interpolation to recover the gates she does now know. This technique sacrifices this small amount of computation overhead to save 60\% of the communication cost.
 
-\subsection{Random Seed Checking}
-\todo[inline]{Communication cost of check circuits is independent of circuit size.}
 
 % Building Blocks
-\section{Building Blocks}
+\section{Building Blocks and Assumptions} \label{sec:building-blocks-assumptions}
+The protocol described in section \ref{sec:protocol} was presented by ~\cite{fast2pc} and requires minimal assumptions, needing only a symmetric encryption scheme, oblivious transfer, and a commitment scheme. As a result, the strongest assumptions introduced in the protocol will result from our garbling techniques. Here, we present short descriptions of the building blocks we use in BetterYao and the assumptions they require.
 
-\subsection{Symmetric Encryption Scheme}
+\subsection{Symmetric Encryption Scheme}\label{sec:symmetric-enc-scheme}
+The symmetric encryption scheme we use is relatively simple, but it also introduces the strongest assumption to our model. We consider AES to be a pseudorandom permutation and use the AES\_NI instruction set to improve performance. As in ~\cite{billiongate}, we use the encryption function $\text{Enc}_{X,Y}^{k}(Z) = \text{AES-256}_{X||Y}(k) \oplus Z$, where $k$ is the index of the garbled gate.
 
 \subsection{OT Extension}
+
 
 \subsection{Commitment Scheme}
 
 
+
+\subsection{Garbling Techniques}
+In our implementation, we use both Free-XOR ~\cite{freeXOR} and GRR3 ~\cite{GRR}. (We should also have some code for GRR2). Free-XOR and GRR3 are compatible when the hash function used to garble gates is circular 2-correlation robust ~\cite{GRR, freeXOR-security}. (Specifically, it is the Free-XOR technique that requires circular 2-correlation robustness.) We could also eliminate Free-XOR and use GRR2, which does not require the hash function to be correlation-robust. Implementing FleXOR ~\cite{flexor} or Half-Gates ~\cite{half-gates} is future work.
+
+\subsection{Randomness, Random Seeds, and PRNGs}
+We briefly note that $Gen$ and $Eval$ both generate randomness in the protocol, and at some points $Gen$ shares random seeds with $Eval$. We assume that $Gen$ and $Eval$ can find randomness from sufficiently random pools, and that when $Gen$ shares random seeds, he and $Eval$ have agreed on the PRNG which they seed in order to recover more bits. The protocol also relies on whatever assumptions the PRNGs make.
+
 % PROTOCOL
-\section{A Protocol Secure Against Malicious Adversaries}
+\section{A Protocol Secure Against Malicious Adversaries}\label{sec:protocol}
 
 We now describe the full protocol for [fast] secure two-party computation in the malicious setting.\\
 
@@ -265,7 +252,7 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 	% Gen Randomly Generates Input Keys
 	\item \textbf{Gen Randomly Generates Input Keys}\\
 	$Gen$ generates randomness $\{\rho^{(j)}\}_{j \in \sigma}$, where $\rho^{(j)}$ corresponds to the randomness used for the \emph{j}th circuit. He uses each $\rho^{(j)}$ to generate input keys and permutation bits $(K_{0,i}^{(j)},K_{1,i}^{(j)},\pi_{i}^{(j)}) \in \{0,1\}^{2k+1} \text{ for } i \in \overline{x}$ for each circuit $j \in \sigma$.
-	\todo[inline]{How much randomness does $Gen$ need, or equivalently, how long should the seed $\rho$ be?}
+	\todo[inline]{How much randomness does $Gen$ need, or equivalently, how long should the seed $\rho$ be? There must be some relationship to the security parameter $k$.}
 	
 	% Gen Input Commitments
 	\item \label{step:gen-inp-commit} \textbf{Gen Commits to His Input}\\
@@ -273,20 +260,34 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 	
 	% Agreement on Objective Circuit
 	\item \textbf{Agreement on the Objective Circuit}\\
-	$Eval$ announces $M$ to $Gen$ and then $Gen$ and $Eval$ run an interactive coin-flipping protocol to generate the two-universal circuit $H \in \{0,1\}^{k \times m_1}$ used to compute a hash over $Gen$'s inputs. They now both know the full objective circuit \emph{C} to compute $g : (\overline{x},\overline{y}) \rightarrow (\bot, (h,c,g_2))$ where $h = H \cdot \overline{x}$, $c=g_{1}\oplus e$, $g_{1} = f_{1}(x, M\cdot\overline{y})$, and $g_{2} = f_{2}(x,M\cdot\overline{y})$.
+	$Eval$ announces $M$ to $Gen$ and then $Gen$ and $Eval$ run an interactive coin-flipping protocol to generate the two-universal circuit $H \in \{0,1\}^{k \times m_1}$ used to compute a hash over $Gen$'s inputs. They now both know the full objective circuit \emph{C} to compute $g : (\overline{x},\overline{y}) \rightarrow (\bot, (h,c,g_2))$ where $h = H \cdot \overline{x}$, $c=g_{1}\oplus e$, $g_{1} = f_{1}(x, M\cdot\overline{y})$, and $g_{2} = f_{2}(x,M\cdot\overline{y})$.\\
+	
+	The coin-flipping protocol is by \cite{?}:
+	\begin{enumerate}[label=(\alph*)]
+		\item $Gen$ and $Eval$ generate random bits $\rho_{g}$ and $\rho_{e}$
+		\item $Gen$ sends $Eval$ the commitment to his random bits, $com(\rho_{g})$
+		\item $Eval$ receives $Gen$'s commitment and replies with her own coins, $\rho_{e}$
+		\item $Gen$ sends $Eval$ the decommitment to his coins
+		\item $Eval$ checks to ensure $Gen$'s decommitment is consistent with his random coins and aborts if not
+		\item $Gen$ and $Eval$ compute $\rho = \rho_{g} \oplus \rho_{e}$
+	\end{enumerate}
+	
+	Here, we set the length of $\rho$ to be $k \times m_{1}$, and $\rho$ completely determines the two-universal circuit $H$ that computes $h$ by matrix multiplication.
 	
 	% Gen Commits to I/O Labels
 	\item \label{step:gen-label-commit} \textbf{Gen Commits to Input and Output Labels}\\
-	$Gen$ uses $\rho^{(j)}$ to generate input keys for $Eval$'s inputs and output keys for his own outputs. \todo[inline]{Does $Gen$ generate entire circuits here, or are these keys enough? It should be implied that $Gen$ must actually generate the whole circuit in order to get the output keys.}  He then sends $(\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)})_{j \in \sigma}$ to $Eval$, where $\Theta$ represents $Gen$'s input labels, $\Omega$ represents $Eval$'s input labels, and $\Phi$ represents $Gen$'s output labels (specifically, the values of $c$):
+	$Gen$ uses $\rho^{(j)}$ to generate input keys for $Eval$'s inputs and output keys for his own outputs.
+	\todo[inline]{$Gen$ generates entire circuits here in order to derive his output keys, then throws them away (to save memory) and regenerates them again later.}
+	He then sends $(\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)})_{j \in \sigma}$ to $Eval$, where $\Theta$ represents $Gen$'s input labels, $\Omega$ represents $Eval$'s input labels, and $\Phi$ represents $Gen$'s output labels (specifically, the values of $h$ and $c$):
 	\begin{enumerate}[label=(\alph*)]
 		\item $\Theta^{(j)}  = \{com(W_{i,0\oplus\pi_{i}^{(j)}}^{(j)};\theta_{i}^{(j)}),com(W_{i,1\oplus\pi_{i}^{(j)}}^{(j)};\theta_{i}^{(j)})\}_{i \in m_{1}}$ where $\theta$ is randomness used in the commitment.\\
-		\todo[inline]{Do the $\theta$s in the above (which represent randomness for the commitment) need to be separate, or even independent?}
+		\todo[inline]{Do the $\theta$s in the above (which represent randomness for the commitment) need to be independent?}
 		To protect $Gen$'s input privacy, the labels for each wire's 0 input and 1 input are permuted by (re)using the permutation bit $\pi$.
 		\item $\Omega = \{com(W_{i,0}^{(j)};\omega_{i}^{(j)}),com(W_{i,1}^{(j)};\omega_{i}^{(j)})\}_{i \in m_{2}}$ where $\omega$ is randomness used in the commitment.\\
 		Unlike $Gen$'s inputs labels, $Gen$ does not permute $Eval$'s input labels. She will need to know their ordering, and her inputs will be protected by OT in step \ref{step:eval-inp-ot}.
 		\item $\Phi =  \{com(W_{i,0}),com(W_{i,1})\}_{i \in c}$\\
-		\todo[inline]{Does $\Phi$ not require randomness in its commitments? Why?}
-		$Eval$ will discover the semantics of these wires anyway (in step ??), so there is no need to permute them.
+		\todo[inline]{Does $\Phi$ not require randomness in its commitments? Is the output of a hash function like SHA enough?}
+		These will be re-used in step \ref{step:gen-out-auth}, and $Eval$ needs to know their semantics, so $Gen$ does not permute them.
 	\end{enumerate}
 	
 	% Eval's Input OTs
@@ -307,14 +308,17 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 	where $(<h_{\alpha},h_{\beta}>) = enc_{K_{a,h_{\alpha}}^{(j)}}(   enc_{K_{b,h_{\beta}}^{(j)}} ( W_{c,g(h_{\alpha},h_{\beta})}^{(j)} ))$.
 	\todo[inline]{come back to this equation.}
 	$Gen$ sends $\{ G(C)^{(j)} \}_{j \in \sigma}$ to $Eval$, where $G(C)^{(j)} = \big( \{G(g)^{(j)}\}_{g \in C}, \{ \pi_{i}^{(j)}: w_{i} \text{ is an output wire } \}  \big)$
-	\todo[inline]{talk about using optimizations described above in communication (and talk about them!)}
+		
+	As explained in section \ref{sec:gate-comm-opt}, $Gen$ does not need to send all of the gates he generates to $Eval$, but instead allows $Eval$ to generate some of the gates on her own. $Gen$ then encodes all of the gates that he generates (he still generates gates for every circuit) as coefficients of a polynomial and sends $\sigma - \mu$ points to $Eval$, allowing her to use the gates she knows from her $\mu$ check circuits to interpolate the polynomial and recover the remaining $\sigma - \mu$ gates. 
 	
 	% Checking Garbled Circuits
 	\item \label{step:circuit-check} \textbf{Checking Garbled Circuits}\\
 	$Eval$ must verify both check circuits and evaluation circuits.
 	\begin{enumerate}[label=(\alph*)]
 		\item \textbf{Check Circuits}\\
-		For every $j \in [\sigma] \backslash S$, $Eval$ uses $\rho^{(j)}$ to regenerate $\{\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)} \}$ received in step \ref{step:gen-label-commit} and reconstruct $G(C)^{(j)}$.
+		For every $j \in [\sigma] \backslash S$, $Eval$ uses $\rho^{(j)}$ to regenerate $\{\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)} \}$ received in step \ref{step:gen-label-commit} and reconstruct $G(C)^{(j)}$.\\
+		
+		Here we note that because $Gen$ sent $Eval$ enough information during the garbling phase to recover all of the gates created at each step, $Eval$'s polynomial interpolation of each gate is an implicit check on $G(C)^{(j)}$. $Gen$'s only opportunity to lie about the check circuits is during the circuit OT in step \ref{step:cut-and-choose}, and if he lies about them then $Eval$ will certainly discover it and abort, so in order for $Gen$ to cheat on the evaluation circuit-gates (or the points on the polynomial sent at each step), he must be able to manipulate the gate generation function such that his input and output label commitments check out at the end of the protocol while the gates in between do not.  \todo{formal proof?}
 		\item \textbf{Evaluation Circuits}\\
 		For every $j \in S$, $Eval$ checks:
 		\begin{enumerate}[label=\roman*]
@@ -334,7 +338,9 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 		\item For every output wire $w_{i}$ with label $W_{i} = (K_{i},\delta_{i})$, $Eval$ computes the wire's value $b_{i}^{(j)} = \delta_{i}^{(j)} \oplus \pi_{i}^{(j)}$, where $Eval$ learned $\pi_{i}^{(j)}$ at the end of step \ref{step:circuit-garbling}. She lets the set of outputs $\{b_{i}^{(j)}\}$ be the circuit outputs.
 	\end{enumerate}
 	
-	% Findings the Majority Circuit
+	As described in section \ref{sec:pipeline-eval}, $Eval$ executes this stage and stage \ref{step:circuit-check} in parallel with step \ref{step:circuit-garbling}. As $Gen$ generates a new batch of gates, he sends them to $Eval$ so that she can perform the proper interpolation, checks, and evaluation.
+	
+	% Finding the Majority Circuit
 	\item \label{step:majority} \textbf{Finding the Majority Output}\\
 	$Eval$ finds the most commonly occurring element for each index in $\{b_{i}\}$ among the evaluation circuits and interprets the set of outputs $\{ b_{i} \}$ as $(h,c,g_{2})$. She then checks:
 	\begin{enumerate}[label=(\alph*)]
@@ -349,8 +355,6 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 	$Eval$ sends $Gen$ his output $c$ and must prove his output authenticity without revealing the index of the chosen majority circuit, as described in section \ref{sec:gen-output-auth}.
 	
 \end{enumerate}
-
-\todo[inline]{There will be a version where Gen has to generate all the circuits twice (so as not to keep them in memory unnecessarily). Make this inclusion in the above list. Also, include the part about cutting down communication.}
 
 \bibliographystyle{IEEEtran}
 \bibliography{protocols}

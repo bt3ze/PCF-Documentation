@@ -222,7 +222,7 @@ The symmetric encryption scheme we use is relatively simple, but it also introdu
 \subsection{OT Extension}
 
 
-\subsection{Commitment Scheme}
+\subsection{Commitment Scheme} \label{comm-scheme}
 
 
 
@@ -251,8 +251,9 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 	
 	% Gen Randomly Generates Input Keys
 	\item \textbf{Gen Randomly Generates Input Keys}\\
-	$Gen$ generates randomness $\{\rho^{(j)}\}_{j \in \sigma}$, where $\rho^{(j)}$ corresponds to the randomness used for the \emph{j}th circuit. He uses each $\rho^{(j)}$ to generate input keys and permutation bits $(K_{0,i}^{(j)},K_{1,i}^{(j)},\pi_{i}^{(j)}) \in \{0,1\}^{2k+1} \text{ for } i \in \overline{x}$ for each circuit $j \in \sigma$.
-	\todo[inline]{How much randomness does $Gen$ need, or equivalently, how long should the seed $\rho$ be? There must be some relationship to the security parameter $k$.}
+	$Gen$ generates randomness $\{\rho^{(j)}\}_{j \in \sigma}$, where $\rho^{(j)}$ corresponds to the randomness used for the \emph{j}th circuit. He uses each $\rho^{(j)}$ to generate input keys and permutation bits $(K_{0,i}^{(j)},K_{1,i}^{(j)},\pi_{i}^{(j)}) \in \{0,1\}^{2k+1} \text{ for } i \in \overline{x}$ for each circuit $j \in \sigma$.\\
+	
+	At this point, $Gen$ uses $\rho$ only for his own input keys, so all of the bits used here can be drawn from true randomness. We can use a PRNG later to generate randomness later during circuit creation.
 	
 	% Gen Input Commitments
 	\item \label{step:gen-inp-commit} \textbf{Gen Commits to His Input}\\
@@ -272,7 +273,7 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 		\item $Gen$ and $Eval$ compute $\rho = \rho_{g} \oplus \rho_{e}$
 	\end{enumerate}
 	
-	Here, we set the length of $\rho$ to be $k \times m_{1}$, and $\rho$ completely determines the two-universal circuit $H$ that computes $h$ by matrix multiplication.
+	Here, we set the length of $\rho$ to be $k \cdot m_{1}$, and $\rho$ completely determines the two-universal circuit $H$ that computes $h$ by matrix multiplication.
 	
 	% Gen Commits to I/O Labels
 	\item \label{step:gen-label-commit} \textbf{Gen Commits to Input and Output Labels}\\
@@ -286,7 +287,7 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 		\item $\Omega = \{com(W_{i,0}^{(j)};\omega_{i}^{(j)}),com(W_{i,1}^{(j)};\omega_{i}^{(j)})\}_{i \in m_{2}}$ where $\omega$ is randomness used in the commitment.\\
 		Unlike $Gen$'s inputs labels, $Gen$ does not permute $Eval$'s input labels. She will need to know their ordering, and her inputs will be protected by OT in step \ref{step:eval-inp-ot}.
 		\item $\Phi =  \{com(W_{i,0}),com(W_{i,1})\}_{i \in c}$\\
-		\todo[inline]{Does $\Phi$ not require randomness in its commitments? Is the output of a hash function like SHA enough?}
+		\todo[inline]{$\Phi$ also requires randomness in its commitments. Find info about the commitment scheme we use (section \ref{comm-scheme}).}
 		These will be re-used in step \ref{step:gen-out-auth}, and $Eval$ needs to know their semantics, so $Gen$ does not permute them.
 	\end{enumerate}
 	

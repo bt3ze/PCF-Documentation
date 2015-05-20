@@ -219,8 +219,22 @@ The protocol described in section \ref{sec:protocol} was presented by ~\cite{fas
 \subsection{Symmetric Encryption Scheme}\label{sec:symmetric-enc-scheme}
 The symmetric encryption scheme we use is relatively simple, but it also introduces the strongest assumption to our model. We consider AES to be a pseudorandom permutation and use the AES\_NI instruction set to improve performance. As in ~\cite{billiongate}, we use the encryption function $\text{Enc}_{X,Y}^{k}(Z) = \text{AES-256}_{X||Y}(k) \oplus Z$, where $k$ is the index of the garbled gate.
 
-\subsection{OT Extension}
+\subsection{OT}
+We use OT by \cite{?} , (also used by Lindell and Pinkas ~\cite{LP-2PC-OT}?) %extension by Ishai et al ~\cite{ishai-ot}. \todo[inline]{discuss}
+and can conduct all of our OTs for inputs in parallel. The protocol is between a sender $S$ and a receiver $R$, where $S$ has inputs $(k_{0}^{i}, k_{1}^{i})$ for all $i$ OT executions, and $R$ has $b^{i}$ to select $k_{0}$ or $k_{1}$ for every $i$. The parties share the description of a cyclic group $\mathbb{G}$ of order $q$, where $q$ is the length of the security parameter $1^{n}$, along with its generator $g_{0}$ (which, in fact, $R$ selects and shares). 
 
+\begin{enumerate}
+	\item $R$ randomly selects values $y,a \leftarrow \mathbb{Z}_{q} \text{ and } g_{0} \leftarrow \mathbb{G}$, then sets $g_{1}=(g_{0})^{y}$. He computes $h_{0} = (g_{0})^{a}$ and $h_{1} = (g_{1})^{a + 1}$. \\
+	$R$ sends the values $(g_{0},g_{1},h_{0}, h_{1})$ to $S$.
+	\item This step is a Zero Knowledge Proof that the information sent in step 1 is a diffie-helman tuple, but our protocol has left it unimplemented.
+	\item $R$ randomly selects $r^{(i)}$ for each OT instance $i$, and computes $gr^{(i)} = (g_{b_i})^{r_{(i)}}$ and $hr^{(i)}= (h_{b_{i}})^{r^{(i)}}$. \\
+	 $R$ sends the values $gr^{(i)}, hr^{(i)}$ for all $i$ to $S$. 
+	\item $S$ randomly chooses the values $Y_{0},Y_{1}$ as well as $s_{0},s_{1},t_{0},t_{1}$ and computes $X_{b} = (g_{b})^{s_{b}} \cdot h_{b}^{t_{b}}$ and $Y_{b} = Y_{b} \cdot (gr_{b})^{s_{b}} \cdot (hr_{b})^{t_{b}}$ for $b \in \{0,1\}$\\
+	Then $S$ sends $R$ the values $(X_{0},X_{1},Y_{0},Y_{1})$ for all $i$.
+	\item $R$ selects $X_{b}$ and $Y_{b}$ from the choices of $(X_{0},X_{1},Y_{0},Y_{1})$ and computes her outputs, $K_{b} = \frac{Y_{b}}{(X_{b})^{r_i}}$.
+\end{enumerate}
+
+\todo[inline]{this protocol, pulled from the code, does not include any of Sender's inputs. Seems that in the last step, $Y_{0}$ and $Y_{1}$ should not be chosen randomly but actually set equal to $K_{0}$ and $K_{1}$, as has been left in the comments. }
 
 \subsection{Commitment Scheme} \label{comm-scheme}
 

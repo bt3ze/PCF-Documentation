@@ -226,15 +226,15 @@ and can conduct all of our OTs for inputs in parallel. The protocol is between a
 \begin{enumerate}
 	\item $R$ randomly selects values $y,a \leftarrow \mathbb{Z}_{q} \text{ and } g_{0} \leftarrow \mathbb{G}$, then sets $g_{1}=(g_{0})^{y}$. He computes $h_{0} = (g_{0})^{a}$ and $h_{1} = (g_{1})^{a + 1}$. \\
 	$R$ sends the values $(g_{0},g_{1},h_{0}, h_{1})$ to $S$.
-	\item This step is a Zero Knowledge Proof that the information sent in step 1 is a diffie-helman tuple, but our protocol has left it unimplemented.
+	\item This step is a Zero Knowledge Proof that the information sent in step 1 is not a Diffie-Helman tuple (but $(g_{0},g_{1},h_{0}, \frac{h_{1}}{g_{1}})$ is), but our protocol has left it unimplemented.
 	\item $R$ randomly selects $r^{(i)}$ for each OT instance $i$, and computes $gr^{(i)} = (g_{b_i})^{r_{(i)}}$ and $hr^{(i)}= (h_{b_{i}})^{r^{(i)}}$. \\
 	 $R$ sends the values $gr^{(i)}, hr^{(i)}$ for all $i$ to $S$. 
-	\item $S$ randomly chooses the values $Y_{0},Y_{1}$ as well as $s_{0},s_{1},t_{0},t_{1}$ and computes $X_{b} = (g_{b})^{s_{b}} \cdot h_{b}^{t_{b}}$ and $Y_{b} = Y_{b} \cdot (gr_{b})^{s_{b}} \cdot (hr_{b})^{t_{b}}$ for $b \in \{0,1\}$\\
+	\item $S$ randomly chooses the values $s_{0},s_{1},t_{0},t_{1}$ and computes $X_{b} = (g_{b})^{s_{b}} \cdot h_{b}^{t_{b}}$ and $Y_{b} = K_{b} \cdot (gr_{b})^{s_{b}} \cdot (hr_{b})^{t_{b}}$ for $b \in \{0,1\}$\\
 	Then $S$ sends $R$ the values $(X_{0},X_{1},Y_{0},Y_{1})$ for all $i$.
 	\item $R$ selects $X_{b}$ and $Y_{b}$ from the choices of $(X_{0},X_{1},Y_{0},Y_{1})$ and computes her outputs, $K_{b} = \frac{Y_{b}}{(X_{b})^{r_i}}$.
 \end{enumerate}
 
-\todo[inline]{this protocol, pulled from the code, does not include any of Sender's inputs. Seems that in the last step, $Y_{0}$ and $Y_{1}$ should not be chosen randomly but actually set equal to $K_{0}$ and $K_{1}$, as has been left in the comments. }
+\todo[inline]{In the code, this protocol randomly selects $Y_{0}$ and $Y_{1}$ before computing $Y_{b} = Y_{b} \cdot (gr_{b})^{s_{b}} \cdot (hr_{b})^{t_{b}}$ and does not include any of Sender's inputs. The comments indicate that $Y_{0}$ and $Y_{1}$ are chosen uniformly at random, as the keys are, but the code may be in need of this simple change. }
 
 \subsection{Commitment Scheme} \label{comm-scheme}
 

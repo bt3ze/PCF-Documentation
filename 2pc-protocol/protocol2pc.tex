@@ -234,11 +234,10 @@ and can conduct all of our OTs for inputs in parallel. The protocol is between a
 	\item $R$ selects $X_{b}$ and $Y_{b}$ from the choices of $(X_{0},X_{1},Y_{0},Y_{1})$ and computes her outputs, $K_{b} = \frac{Y_{b}}{(X_{b})^{r_i}}$.
 \end{enumerate}
 
-\todo[inline]{In the code, this protocol randomly selects $Y_{0}$ and $Y_{1}$ before computing $Y_{b} = Y_{b} \cdot (gr_{b})^{s_{b}} \cdot (hr_{b})^{t_{b}}$ and does not include any of Sender's inputs. The comments indicate that $Y_{0}$ and $Y_{1}$ are chosen uniformly at random, as the keys are, but the code may be in need of this simple change. }
+\todo[inline]{In the code, this protocol randomly selects $Y_{0}$ and $Y_{1}$ before computing $Y_{b} = Y_{b} \cdot (gr_{b})^{s_{b}} \cdot (hr_{b})^{t_{b}}$ and does not include any of Sender's inputs. The comments indicate that $Y_{0}$ and $Y_{1}$ are chosen uniformly at random, as the keys are. In fact, our current code uses the OT results as seeds to pseudo-random number generators which are then used to mask Gen's communication with Eval about the things he should be sending. When Eval has the proper seed (corresponding to check circuit or evaluation circuit) she has the key for Gen's one-time pad encryption of the information he sends. When Eval does not have the seed, she cannot decrypt. Gen sends all of the check and evaluation information to Eval for each circuit, and Eval only learns some of it, as enforced by the OT.  }
 
 \subsection{Commitment Scheme} \label{comm-scheme}
-
-
+The commitment scheme we use is simply $hash(r' + \alpha)$, where $r'$ is newly generated random bits and $\alpha$ is the value to which we commit. Decommitment requires sending $r' + \alpha$, and checking a commitment requires the receiver to compute the hash herself. Our hash function is SHA256.
 
 \subsection{Garbling Techniques}
 In our implementation, we use both Free-XOR ~\cite{freeXOR} and GRR3 ~\cite{GRR}. (We should also have some code for GRR2). Free-XOR and GRR3 are compatible when the hash function used to garble gates is circular 2-correlation robust ~\cite{GRR, freeXOR-security}. (Specifically, it is the Free-XOR technique that requires circular 2-correlation robustness.) We could also eliminate Free-XOR and use GRR2, which does not require the hash function to be correlation-robust. Implementing FleXOR ~\cite{flexor} or Half-Gates ~\cite{half-gates} is future work.
@@ -300,8 +299,8 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 		To protect $Gen$'s input privacy, the labels for each wire's 0 input and 1 input are permuted by (re)using the permutation bit $\pi$.
 		\item $\Omega = \{com(W_{i,0}^{(j)};\omega_{i}^{(j)}),com(W_{i,1}^{(j)};\omega_{i}^{(j)})\}_{i \in m_{2}}$ where $\omega$ is randomness used in the commitment.\\
 		Unlike $Gen$'s inputs labels, $Gen$ does not permute $Eval$'s input labels. She will need to know their ordering, and her inputs will be protected by OT in step \ref{step:eval-inp-ot}.
-		\item $\Phi =  \{com(W_{i,0}),com(W_{i,1})\}_{i \in c}$\\
-		\todo[inline]{$\Phi$ also requires randomness in its commitments. Find info about the commitment scheme we use (section \ref{comm-scheme}).}
+		\item $\Phi^{(j)} =  \{com(W_{i,0}^{(j)}),com(W_{i,1}^{(j)})\}_{i \in c}$\\ (Implicitly, this is $\Phi^{(j)} =  \{com(W_{i,0}^{(j)},\Phi_{i}^{(j)}),com(W_{i,1}^{(j)},\Phi_{i}^{(j)})\}_{i \in c}$, since all commitments require randomness.) \\
+		\todo[inline]{Find info about the commitment scheme we use (section \ref{comm-scheme}).}
 		These will be re-used in step \ref{step:gen-out-auth}, and $Eval$ needs to know their semantics, so $Gen$ does not permute them.
 	\end{enumerate}
 	

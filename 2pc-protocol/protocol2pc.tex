@@ -234,7 +234,7 @@ and can conduct all of our OTs for inputs in parallel. The protocol is between a
 	\item $R$ selects $X_{b}$ and $Y_{b}$ from the choices of $(X_{0},X_{1},Y_{0},Y_{1})$ and computes her outputs, $K_{b} = \frac{Y_{b}}{(X_{b})^{r_i}}$.
 \end{enumerate}
 
-\todo[inline]{In the code, this protocol randomly selects $Y_{0}$ and $Y_{1}$ before computing $Y_{b} = Y_{b} \cdot (gr_{b})^{s_{b}} \cdot (hr_{b})^{t_{b}}$ and does not include any of Sender's inputs. The comments indicate that $Y_{0}$ and $Y_{1}$ are chosen uniformly at random, as the keys are. In fact, our current code uses the OT results as seeds to pseudo-random number generators which are then used to mask Gen's communication with Eval about the things he should be sending. When Eval has the proper seed (corresponding to check circuit or evaluation circuit) she has the key for Gen's one-time pad encryption of the information he sends. When Eval does not have the seed, she cannot decrypt. Gen sends all of the check and evaluation information to Eval for each circuit, and Eval only learns some of it, as enforced by the OT.  }
+\todo[inline]{In the code, this protocol randomly selects $Y_{0}$ and $Y_{1}$ before computing $Y_{b} = Y_{b} \cdot (gr_{b})^{s_{b}} \cdot (hr_{b})^{t_{b}}$ and does not include any of Sender's inputs. The comments indicate that $Y_{0}$ and $Y_{1}$ are chosen uniformly at random, as the keys are. In fact, our current code uses the OT results as seeds to pseudo-random number generators which are then used to mask Gen's communication with Eval about the things he should be sending. When Eval has the proper seed (corresponding to check circuit or evaluation circuit) she has the key for Gen's one-time pad encryption of the information he sends. When Eval does not have the seed, she cannot decrypt. Gen sends all of the check and evaluation information to Eval for each circuit, and Eval only learns some of it, as enforced by the OT. }
 
 \subsection{Commitment Scheme} \label{comm-scheme}
 The commitment scheme we use is simply $hash(r' + \alpha)$, where $r'$ is newly generated random bits and $\alpha$ is the value to which we commit. Decommitment requires sending $r' + \alpha$, and checking a commitment requires the receiver to compute the hash herself. Our hash function is SHA256.
@@ -290,9 +290,9 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 	
 	% Gen Commits to I/O Labels
 	\item \label{step:gen-label-commit} \textbf{Gen Commits to Input and Output Labels}\\
-	$Gen$ uses $\rho^{(j)}$ to generate input keys for $Eval$'s inputs and output keys for his own outputs.
-	\todo[inline]{$Gen$ generates entire circuits here in order to derive his output keys, then throws them away (to save memory) and regenerates them again later.}
-	He then sends $(\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)})_{j \in \sigma}$ to $Eval$, where $\Theta$ represents $Gen$'s input labels, $\Omega$ represents $Eval$'s input labels, and $\Phi$ represents $Gen$'s output labels (specifically, the values of $h$ and $c$):
+	$Gen$ uses $\rho^{(j)}$ to generate input keys for $Eval$'s inputs and output keys for his own outputs.\\ 
+	
+	$Gen$ then sends $(\Theta^{(j)}, \Omega^{(j)}, \Phi^{(j)})_{j \in \sigma}$ to $Eval$, where $\Theta$ represents $Gen$'s input labels, $\Omega$ represents $Eval$'s input labels, and $\Phi$ represents $Gen$'s output labels (specifically, the values of $h$ and $c$):
 	\begin{enumerate}[label=(\alph*)]
 		\item $\Theta^{(j)}  = \{com(W_{i,0\oplus\pi_{i}^{(j)}}^{(j)};\theta_{i}^{(j)}),com(W_{i,1\oplus\pi_{i}^{(j)}}^{(j)};\theta_{i}^{(j)})\}_{i \in m_{1}}$ where $\theta$ is randomness used in the commitment.\\
 		\todo[inline]{Do the $\theta$s in the above (which represent randomness for the commitment) need to be independent?}
@@ -300,9 +300,11 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 		\item $\Omega = \{com(W_{i,0}^{(j)};\omega_{i}^{(j)}),com(W_{i,1}^{(j)};\omega_{i}^{(j)})\}_{i \in m_{2}}$ where $\omega$ is randomness used in the commitment.\\
 		Unlike $Gen$'s inputs labels, $Gen$ does not permute $Eval$'s input labels. She will need to know their ordering, and her inputs will be protected by OT in step \ref{step:eval-inp-ot}.
 		\item $\Phi^{(j)} =  \{com(W_{i,0}^{(j)}),com(W_{i,1}^{(j)})\}_{i \in c}$\\ (Implicitly, this is $\Phi^{(j)} =  \{com(W_{i,0}^{(j)},\Phi_{i}^{(j)}),com(W_{i,1}^{(j)},\Phi_{i}^{(j)})\}_{i \in c}$, since all commitments require randomness.) \\
-		\todo[inline]{Find info about the commitment scheme we use (section \ref{comm-scheme}).}
 		These will be re-used in step \ref{step:gen-out-auth}, and $Eval$ needs to know their semantics, so $Gen$ does not permute them.
 	\end{enumerate}
+	
+	\todo[inline]{a note about the output labels:}
+	In order to prevent $Gen$ from having to construct the circuit in order to derive his output labels and then throw it away (to save memory) before reconstructing it during circuit evaluation, $Gen$ commits not to the output labels themselves but to a method of generating them. Two proposed ideas are that he can use the labels generated immediately after inputs as the output labels, or he can use a counter mode stream cipher to generate output labels based on their gate indices, i.e. the encryption of a nonce concatenated with a gate index. (Reference: Chih-hao)\\
 	
 	% Eval's Input OTs
 	\item \label{step:eval-inp-ot} \textbf{Eval's Input OTs}\\
@@ -316,7 +318,7 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 	
 	In our protocol implementation (BetterYao4 code), $Eval$ and $Gen$ choose the check circuits collaboratively. First, $Gen$ and $Eval$ interactively flip coins for a string of length $k$ (the security parameter), and then they use the output to seed a pseudo-random number generator. They use this output to perform a Fisher-Yates shuffle of $\sigma$ circuits and achieve a 3:2 ratio of check circuits to evaluation circuits by selecting the first $\frac{2\sigma}{5}$ of the circuits as evaluation circuits. \todo[inline]{We also have the first circuit always being an evaluation circuit. Not sure why?} In the revision, we want cut-and-choose to be performed independently of $Gen$, meaning he does not get to know which circuits are check circuits, and we will use OTs as described above to enforce this privacy.\\
 
-	Note: the OTs in \ref{step:cut-and-choose} can all be run in parallel, as can the OTs in step \ref{step:eval-inp-ot}, and they can be run in parallel with each other. 
+	Note: the OTs in \ref{step:cut-and-choose} can all be run in parallel, as can the OTs in step \ref{step:eval-inp-ot}, and they can be run in parallel with each other.
 	
 	% Circuit Garbling
 	\item \label{step:circuit-garbling} \textbf{Circuit Garbling}\\

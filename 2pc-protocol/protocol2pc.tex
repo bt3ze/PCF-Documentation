@@ -314,9 +314,10 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 	% Cut and Choose
 	\item \label{step:cut-and-choose} \textbf{Cut and Choose}\\
 	$Eval$ randomly chooses $S \subset [\sigma]$ such that $S = 2\sigma / 5$. Use the string $s \in \{0,1\}^{\sigma}$ to describe the circuits that $Eval$ has chosen for cut-and-choose by denoting $s_{j} = 1$ if $j \in S$ and $s_{j} = 0$ otherwise.  $Gen$ and $Eval$ perform cut-and-choose by doing $\sigma$ ${2 \choose 1}$ OTs, where $Eval$'s input is $s_{j}$ and $Gen$'s input is $(\rho^{(j)}, X^{(j)})$ such that $X^{(j)} = X_{1}^{(j)} \cup X_{2}^{(j)}$, where $X_{1}^{(j)} = \{(W_{i,\overline{x}_{i}}^{(j)},\gamma_{i}^{j})\}_{i \in \overline{x}}$ and $X_{2}^{(j)} = \{(W_{i,\overline{x}_{i}}^{(j)},\theta_{i}^{j})\}_{i \in \overline{x}}$. In other words, if $Eval$ chooses a circuit as a check circuit, she learns the input and generates it. If $Eval$ chooses a circuit as an evaluation circuit, she learns the de-commitments to $Gen$'s input keys (which will be checked) and can evaluate the circuit. \\
-	\todo[inline]{are Gen's inputs to the OT the same length? Do we need padding?}
+		
+	In our protocol implementation (BetterYao4 code), $Eval$ and $Gen$ choose the check circuits collaboratively. First, $Gen$ and $Eval$ interactively flip coins for a string of length $k$ (the security parameter), and then they use the output to seed a pseudo-random number generator. They use this output to perform a Fisher-Yates shuffle of $\sigma$ circuits and achieve a 3:2 ratio of check circuits to evaluation circuits by selecting the first $\frac{2\sigma}{5}$ of the circuits as evaluation circuits.
 	
-	In our protocol implementation (BetterYao4 code), $Eval$ and $Gen$ choose the check circuits collaboratively. First, $Gen$ and $Eval$ interactively flip coins for a string of length $k$ (the security parameter), and then they use the output to seed a pseudo-random number generator. They use this output to perform a Fisher-Yates shuffle of $\sigma$ circuits and achieve a 3:2 ratio of check circuits to evaluation circuits by selecting the first $\frac{2\sigma}{5}$ of the circuits as evaluation circuits. \todo[inline]{We also have the first circuit always being an evaluation circuit. Not sure why?} In the revision, we want cut-and-choose to be performed independently of $Gen$, meaning he does not get to know which circuits are check circuits, and we will use OTs as described above to enforce this privacy.\\
+	In our protocol implementation, we also require that the first circuit is always an evaluation circuit. This is to trivialize Evl sending Gen his outputs, since we did not implement the witness-indistinguishable proof described in section \ref{sec:gen-output-auth}. The revision will contain a fix for this. In the revision, we also want cut-and-choose to be performed independently of $Gen$, meaning he does not get to know which circuits are check circuits, and we will use OTs as described above to enforce this privacy.\\
 
 	Note: the OTs in \ref{step:cut-and-choose} can all be run in parallel, as can the OTs in step \ref{step:eval-inp-ot}, and they can be run in parallel with each other.
 	
@@ -374,6 +375,12 @@ $Gen$'s inputs $\overline{x}$ (described in step \ref{step:inputs}) have length 
 	$Eval$ sends $Gen$ his output $c$ and must prove his output authenticity without revealing the index of the chosen majority circuit, as described in section \ref{sec:gen-output-auth}.
 	
 \end{enumerate}
+
+\section{Implementation Details}\label{sec:implementation}
+
+Our maximum output size if 1024 bytes; this is a changeable parameter (see GarbledBase.h).
+
+
 
 \bibliographystyle{IEEEtran}
 \bibliography{protocols}
